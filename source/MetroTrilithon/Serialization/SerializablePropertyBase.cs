@@ -47,6 +47,11 @@ namespace MetroTrilithon.Serialization
 			{
 				if (this._cached && this._value.Equals(value)) return;
 
+				if (!this.Provider.IsLoaded)
+				{
+					this.Provider.Load();
+				}
+
 				var old = this._value;
 				this._value = value;
 				this._cached = true;
