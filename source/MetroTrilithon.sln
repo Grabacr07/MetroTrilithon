@@ -7,6 +7,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MetroTrilithon", "MetroTril
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MetroTrilithon.Desktop", "MetroTrilithon.Desktop\MetroTrilithon.Desktop.csproj", "{4E2EB2E0-E5FE-4FEB-A3E5-5F2F05CD1A67}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MetroRadiance", "MetroRadiance", "{0D5434CE-0B13-4032-919A-5D6AED3C623F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MetroRadiance.Core", "MetroRadiance\MetroRadiance.Core\MetroRadiance.Core.csproj", "{A6B0A741-5BE0-479D-B813-E65672350057}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MetroRadiance.Chrome", "MetroRadiance\MetroRadiance.Chrome\MetroRadiance.Chrome.csproj", "{21B4AD15-D9FA-4873-BFAD-1EEEFBC6C264}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MetroRadiance", "MetroRadiance\MetroRadiance\MetroRadiance.csproj", "{0AF0B9FF-D981-4D0F-A41F-C3AB6FE2F16D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,8 +29,25 @@ Global
 		{4E2EB2E0-E5FE-4FEB-A3E5-5F2F05CD1A67}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4E2EB2E0-E5FE-4FEB-A3E5-5F2F05CD1A67}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4E2EB2E0-E5FE-4FEB-A3E5-5F2F05CD1A67}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A6B0A741-5BE0-479D-B813-E65672350057}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A6B0A741-5BE0-479D-B813-E65672350057}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A6B0A741-5BE0-479D-B813-E65672350057}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A6B0A741-5BE0-479D-B813-E65672350057}.Release|Any CPU.Build.0 = Release|Any CPU
+		{21B4AD15-D9FA-4873-BFAD-1EEEFBC6C264}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{21B4AD15-D9FA-4873-BFAD-1EEEFBC6C264}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{21B4AD15-D9FA-4873-BFAD-1EEEFBC6C264}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{21B4AD15-D9FA-4873-BFAD-1EEEFBC6C264}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0AF0B9FF-D981-4D0F-A41F-C3AB6FE2F16D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0AF0B9FF-D981-4D0F-A41F-C3AB6FE2F16D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0AF0B9FF-D981-4D0F-A41F-C3AB6FE2F16D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0AF0B9FF-D981-4D0F-A41F-C3AB6FE2F16D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A6B0A741-5BE0-479D-B813-E65672350057} = {0D5434CE-0B13-4032-919A-5D6AED3C623F}
+		{21B4AD15-D9FA-4873-BFAD-1EEEFBC6C264} = {0D5434CE-0B13-4032-919A-5D6AED3C623F}
+		{0AF0B9FF-D981-4D0F-A41F-C3AB6FE2F16D} = {0D5434CE-0B13-4032-919A-5D6AED3C623F}
 	EndGlobalSection
 EndGlobal
