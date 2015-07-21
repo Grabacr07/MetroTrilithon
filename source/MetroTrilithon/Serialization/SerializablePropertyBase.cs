@@ -74,8 +74,9 @@ namespace MetroTrilithon.Serialization
 			this.Default = defaultValue;
 		}
 
-		public virtual IDisposable RegisterListener(Action<T> listener)
+		public virtual IDisposable Subscribe(Action<T> listener)
 		{
+			listener(this.Value);
 			return new ValueChangedEventListener(this, listener);
 		}
 
