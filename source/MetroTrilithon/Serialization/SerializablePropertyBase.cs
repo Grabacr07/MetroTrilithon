@@ -45,7 +45,7 @@ namespace MetroTrilithon.Serialization
 			}
 			set
 			{
-				if (this._cached && this._value.Equals(value)) return;
+				if (this._cached && Equals(this._value, value)) return;
 
 				if (!this.Provider.IsLoaded)
 				{

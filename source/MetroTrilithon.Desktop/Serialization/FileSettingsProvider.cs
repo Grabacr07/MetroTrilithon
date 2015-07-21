@@ -46,6 +46,14 @@ namespace MetroTrilithon.Serialization
 
 		public void Save()
 		{
+			var dir = Path.GetDirectoryName(this._path);
+			if (dir == null) throw new DirectoryNotFoundException();
+
+			if (!Directory.Exists(dir))
+			{
+				Directory.CreateDirectory(dir);
+			}
+
 			lock (this._sync)
 			{
 				using (var stream = new FileStream(this._path, FileMode.Create, FileAccess.ReadWrite))
