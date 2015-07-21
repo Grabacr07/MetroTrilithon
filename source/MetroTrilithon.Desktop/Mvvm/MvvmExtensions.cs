@@ -18,6 +18,14 @@ namespace MetroTrilithon.Mvvm
 			vm.CompositeDisposable.Add(disposable);
 		}
 
+		/// <summary>
+		/// <see cref="IDisposable"/> オブジェクトを、指定した <see cref="ICompositDisposable.CompositeDisposable"/> に追加します。
+		/// </summary>
+		public static void AddTo(this IDisposable disposable, ICompositDisposable compositDisposable)
+		{
+			compositDisposable.CompositeDisposable.Add(disposable);
+		}
+
 
 		/// <summary>
 		/// <see cref="INotifyPropertyChanged.PropertyChanged"/> イベントを購読します。
