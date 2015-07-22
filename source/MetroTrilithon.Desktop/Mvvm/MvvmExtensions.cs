@@ -19,9 +19,9 @@ namespace MetroTrilithon.Mvvm
 		}
 
 		/// <summary>
-		/// <see cref="IDisposable"/> オブジェクトを、指定した <see cref="ICompositDisposable.CompositeDisposable"/> に追加します。
+		/// <see cref="IDisposable"/> オブジェクトを、指定した <see cref="ICompositeDisposable.CompositeDisposable"/> に追加します。
 		/// </summary>
-		public static void AddTo(this IDisposable disposable, ICompositDisposable compositDisposable)
+		public static void AddTo(this IDisposable disposable, ICompositeDisposable compositDisposable)
 		{
 			compositDisposable.CompositeDisposable.Add(disposable);
 		}

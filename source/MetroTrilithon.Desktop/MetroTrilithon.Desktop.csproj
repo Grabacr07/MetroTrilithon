@@ -75,7 +75,7 @@
     <Compile Include="Converters\StringToVisiblityConverter.cs" />
     <Compile Include="Converters\UniversalBooleanToVisibilityConverter.cs" />
     <Compile Include="Desktop\ApplicationInstance.cs" />
-    <Compile Include="Mvvm\ICompositDisposable.cs" />
+    <Compile Include="Mvvm\ICompositeDisposable.cs" />
     <Compile Include="Mvvm\MvvmExtensions.cs" />
     <Compile Include="Mvvm\WindowViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
