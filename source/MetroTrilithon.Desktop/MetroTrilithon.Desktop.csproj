@@ -72,9 +72,11 @@
     <Compile Include="Controls\WebBrowserHelper.cs" />
     <Compile Include="Converters\EnumToBooleanConverter.cs" />
     <Compile Include="Converters\NullToVisibilityConverter.cs" />
+    <Compile Include="Converters\ReverseBooleanConverter.cs" />
     <Compile Include="Converters\StringToVisiblityConverter.cs" />
     <Compile Include="Converters\UniversalBooleanToVisibilityConverter.cs" />
     <Compile Include="Desktop\ApplicationInstance.cs" />
+    <Compile Include="Mvvm\DisplayViewModel.cs" />
     <Compile Include="Mvvm\ICompositeDisposable.cs" />
     <Compile Include="Mvvm\MvvmExtensions.cs" />
     <Compile Include="Mvvm\WindowViewModel.cs" />

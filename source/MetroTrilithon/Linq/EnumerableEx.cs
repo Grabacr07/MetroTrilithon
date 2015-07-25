@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace MetroTrilithon.Linq
@@ -13,7 +12,7 @@ namespace MetroTrilithon.Linq
 			yield return value;
 		}
 
-		public static string Join<T>(this IEnumerable<T> source, string separator)
+		public static string JoinString<T>(this IEnumerable<T> source, string separator)
 		{
 			return string.Join(separator, source is IEnumerable<string> ? (IEnumerable<string>)source : source.Select(x => x.ToString()));
 		}
