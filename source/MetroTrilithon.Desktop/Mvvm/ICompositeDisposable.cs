@@ -9,6 +9,6 @@ namespace MetroTrilithon.Mvvm
 {
 	public interface ICompositeDisposable : IDisposable
 	{
-		LivetCompositeDisposable CompositeDisposable { get; }
+		ICollection<IDisposable> CompositeDisposable { get; }
 	}
 }
