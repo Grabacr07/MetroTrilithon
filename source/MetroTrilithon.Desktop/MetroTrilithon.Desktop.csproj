@@ -61,6 +61,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Behaviors\ScrollBarThresholdBehavior.cs" />
     <Compile Include="Controls\CallMethodButton.cs" />
     <Compile Include="Controls\HyperlinkEx.cs" />
     <Compile Include="Controls\RichTextInlinePresenter.cs" />

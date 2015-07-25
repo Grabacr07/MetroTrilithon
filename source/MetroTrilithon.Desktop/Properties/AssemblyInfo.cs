@@ -32,6 +32,7 @@ using System.Windows.Markup;
 	ResourceDictionaryLocation.SourceAssembly
 )]
 
+[assembly: XmlnsDefinition("http://schemes.grabacr.net/winfx/2015/personal/behaviors", "MetroTrilithon.Behaviors")]
 [assembly: XmlnsDefinition("http://schemes.grabacr.net/winfx/2015/personal/controls", "MetroTrilithon.Controls")]
 [assembly: XmlnsDefinition("http://schemes.grabacr.net/winfx/2015/personal/converters", "MetroTrilithon.Converters")]
 
