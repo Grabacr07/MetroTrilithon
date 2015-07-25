@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace MetroTrilithon.Serialization
 {
+	[DebuggerDisplay("Value={Value}, Key={Key}, Default={Default}")]
 	public abstract class SerializablePropertyBase<T> : INotifyPropertyChanged
 	{
 		private T _value;

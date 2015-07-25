@@ -161,9 +161,10 @@ namespace MetroTrilithon.Mvvm
 			this.Messenger.Raise(new WindowActionMessage(action, "Window.WindowAction"));
 		}
 
-		protected void Transition(ViewModel viewModel, Type windowType, TransitionMode mode)
+		protected void Transition(ViewModel viewModel, Type windowType, TransitionMode mode, bool isOwned)
 		{
-			this.Messenger.Raise(new TransitionMessage(windowType, viewModel, mode, "Window.Transition"));
+			var message = new TransitionMessage(windowType, viewModel, mode, isOwned ? "Window.Transition.Child" : "Window.Transition");
+			this.Messenger.Raise(message);
 		}
 
 		protected void InvokeOnUIDispatcher(Action action)
