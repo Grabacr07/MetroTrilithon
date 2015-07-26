@@ -63,6 +63,7 @@
   <ItemGroup>
     <Compile Include="Behaviors\ScrollBarThresholdBehavior.cs" />
     <Compile Include="Controls\CallMethodButton.cs" />
+    <Compile Include="Controls\ControlExtensions.cs" />
     <Compile Include="Controls\HyperlinkEx.cs" />
     <Compile Include="Controls\RichTextInlinePresenter.cs" />
     <Compile Include="Controls\RichTexts.cs" />
