@@ -37,7 +37,6 @@ namespace MetroTrilithon.Desktop
 
 		public ApplicationInstance(Assembly targetAssembly)
 		{
-#if !DEBUG
 			// アプリケーションの GUID を取得
 			var portName = ((GuidAttribute)Attribute.GetCustomAttribute(targetAssembly, typeof(GuidAttribute))).Value;
 
@@ -79,7 +78,6 @@ namespace MetroTrilithon.Desktop
 					this.IsFirst = false;
 				}
 			}
-#endif
 		}
 
 		/// <summary>
