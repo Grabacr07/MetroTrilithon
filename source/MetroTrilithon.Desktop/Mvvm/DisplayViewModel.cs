@@ -6,9 +6,16 @@ using Livet;
 
 namespace MetroTrilithon.Mvvm
 {
+	public static class DisplayViewModel
+	{
+		public static DisplayViewModel<T> Create<T>(T value, string display)
+		{
+			return new DisplayViewModel<T> { Value = value, Display = display, };
+		}
+	}
+
 	public class DisplayViewModel<T> : ViewModel
 	{
-
 		#region Value 変更通知プロパティ
 
 		private T _Value;
