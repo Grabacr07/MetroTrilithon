@@ -54,6 +54,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="MetroTrilithon.nuspec" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup />
