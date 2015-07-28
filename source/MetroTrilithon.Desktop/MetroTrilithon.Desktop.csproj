@@ -80,7 +80,6 @@
     <Compile Include="Desktop\ApplicationInstance.cs" />
     <Compile Include="Mvvm\DisplayViewModel.cs" />
     <Compile Include="Mvvm\ViewModelExtensions.cs" />
-    <Compile Include="Mvvm\PropertyChangedExtensions.cs" />
     <Compile Include="Mvvm\WindowViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Serialization\ApplicationSettingsProvider.cs" />

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
-using Livet.EventListeners;
+using StatefulModel.EventListeners;
 
 namespace MetroTrilithon.Mvvm
 {
