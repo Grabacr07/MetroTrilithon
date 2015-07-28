@@ -41,11 +41,20 @@ namespace MetroTrilithon.Mvvm
 
 		public class ListenerWrapper : IDisposable
 		{
-			private readonly PropertyChangedEventListener listener;
+			// ぶっちゃけ、ひとつのイベント ソースに対して
+			// 複数のプロパティの変更通知を購読したいときに
+			// EventSource // <- INotifyPropertyChanged object
+			//     .Subscribe(nameof(Property1), () => { ... })
+			//     .Subscribe(nameof(Property2), () => { ... })
+			//     .Subscribe(nameof(Property3), () => { ... })
+			//     .AddTo(this);
+			// って書きたいがためだけに用意したもの
 
-			public ListenerWrapper(INotifyPropertyChanged source)
+			private readonly PropertyChangedEventListener _listener;
+
+			internal ListenerWrapper(INotifyPropertyChanged source)
 			{
-				this.listener = new PropertyChangedEventListener(source);
+				this._listener = new PropertyChangedEventListener(source);
 			}
 
 			/// <summary>
@@ -57,11 +66,11 @@ namespace MetroTrilithon.Mvvm
 			public ListenerWrapper Subscribe(string propertyName, Action action, bool immediately = true)
 			{
 				if (immediately) action();
-				this.listener.Add(propertyName, (sender, args) => action());
+				this._listener.Add(propertyName, (sender, args) => action());
 				return this;
 			}
 
-			void IDisposable.Dispose() => this.listener.Dispose();
+			void IDisposable.Dispose() => this._listener.Dispose();
 		}
 	}
 }
