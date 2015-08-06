@@ -10,7 +10,7 @@ namespace MetroTrilithon.Serialization
 	{
 		private readonly string _path;
 		private readonly object _sync = new object();
-		private Dictionary<string, object> _settings;
+		private SortedDictionary<string, object> _settings;
 
 		public bool IsLoaded { get; private set; }
 
@@ -73,8 +73,8 @@ namespace MetroTrilithon.Serialization
 					{
 						var source = XamlServices.Load(stream) as IDictionary<string, object>;
 						this._settings = source == null
-							? new Dictionary<string, object>()
-							: new Dictionary<string, object>(source);
+							? new SortedDictionary<string, object>()
+							: new SortedDictionary<string, object>(source);
 					}
 				}
 			}
@@ -82,7 +82,7 @@ namespace MetroTrilithon.Serialization
 			{
 				lock (this._sync)
 				{
-					this._settings = new Dictionary<string, object>();
+					this._settings = new SortedDictionary<string, object>();
 				}
 			}
 
