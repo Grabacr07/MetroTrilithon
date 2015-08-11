@@ -10,7 +10,7 @@ namespace MetroTrilithon.Serialization
 	{
 		private readonly string _path;
 		private readonly object _sync = new object();
-		private SortedDictionary<string, object> _settings;
+		private SortedDictionary<string, object> _settings = new SortedDictionary<string, object>();
 
 		public bool IsLoaded { get; private set; }
 
@@ -46,6 +46,8 @@ namespace MetroTrilithon.Serialization
 
 		public void Save()
 		{
+			if (this._settings.Count == 0) return;
+
 			var dir = Path.GetDirectoryName(this._path);
 			if (dir == null) throw new DirectoryNotFoundException();
 
