@@ -4,9 +4,11 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Shell;
 using Livet;
 using Livet.Messaging;
 using Livet.Messaging.Windows;
+using MetroTrilithon.Interactivity;
 
 namespace MetroTrilithon.Mvvm
 {
@@ -164,6 +166,16 @@ namespace MetroTrilithon.Mvvm
 		protected void Transition(ViewModel viewModel, Type windowType, TransitionMode mode, bool isOwned)
 		{
 			var message = new TransitionMessage(windowType, viewModel, mode, isOwned ? "Window.Transition.Child" : "Window.Transition");
+			this.Messenger.Raise(message);
+		}
+
+		protected void UpdateTaskbar(TaskbarItemProgressState state, double value)
+		{
+			var message = new TaskbarMessage("Window.UpdateTaskbar")
+			{
+				ProgressState = state,
+				ProgressValue = value,
+			};
 			this.Messenger.Raise(message);
 		}
 
