@@ -61,7 +61,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Behaviors\ScrollBarThresholdBehavior.cs" />
+    <Compile Include="Interactivity\ScrollBarThresholdBehavior.cs" />
     <Compile Include="Controls\CallMethodButton.cs" />
     <Compile Include="Controls\ControlExtensions.cs" />
     <Compile Include="Controls\HyperlinkEx.cs" />
@@ -78,7 +78,9 @@
     <Compile Include="Converters\StringToVisiblityConverter.cs" />
     <Compile Include="Converters\UniversalBooleanToVisibilityConverter.cs" />
     <Compile Include="Desktop\ApplicationInstance.cs" />
+    <Compile Include="Interactivity\TaskbarMessageAction.cs" />
     <Compile Include="Mvvm\DisplayViewModel.cs" />
+    <Compile Include="Interactivity\TaskbarMessage.cs" />
     <Compile Include="Mvvm\ViewModelExtensions.cs" />
     <Compile Include="Mvvm\WindowViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

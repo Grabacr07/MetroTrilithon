@@ -32,9 +32,9 @@ using System.Windows.Markup;
 	ResourceDictionaryLocation.SourceAssembly
 )]
 
-[assembly: XmlnsDefinition("http://schemes.grabacr.net/winfx/2015/personal/behaviors", "MetroTrilithon.Behaviors")]
 [assembly: XmlnsDefinition("http://schemes.grabacr.net/winfx/2015/personal/controls", "MetroTrilithon.Controls")]
 [assembly: XmlnsDefinition("http://schemes.grabacr.net/winfx/2015/personal/converters", "MetroTrilithon.Converters")]
+[assembly: XmlnsDefinition("http://schemes.grabacr.net/winfx/2015/personal/interactivity", "MetroTrilithon.Interactivity")]
 
 // アセンブリのバージョン情報は、以下の 4 つの値で構成されています:
 //
@@ -46,4 +46,4 @@ using System.Windows.Markup;
 // すべての値を指定するか、下のように '*' を使ってビルドおよびリビジョン番号を 
 // 既定値にすることができます:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("0.1.0.0")]
+[assembly: AssemblyVersion("0.1.1.0")]
