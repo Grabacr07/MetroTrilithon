@@ -9,6 +9,9 @@ using Livet.Messaging;
 
 namespace MetroTrilithon.Interactivity
 {
+	/// <summary>
+	/// <see cref="TaskbarMessageAction"/> 経由で <see cref="Window.TaskbarItemInfo"/> を設定するための相互作用メッセージを表します。
+	/// </summary>
 	public class TaskbarMessage : InteractionMessage
 	{
 		#region ProgressState Dependency property
@@ -18,6 +21,7 @@ namespace MetroTrilithon.Interactivity
 			get { return (TaskbarItemProgressState?)this.GetValue(ProgressStateProperty); }
 			set { this.SetValue(ProgressStateProperty, value); }
 		}
+
 		public static readonly DependencyProperty ProgressStateProperty =
 			DependencyProperty.Register(nameof(ProgressState), typeof(TaskbarItemProgressState?), typeof(TaskbarMessage), new UIPropertyMetadata(null));
 
@@ -30,6 +34,7 @@ namespace MetroTrilithon.Interactivity
 			get { return (double?)this.GetValue(ProgressValueProperty); }
 			set { this.SetValue(ProgressValueProperty, value); }
 		}
+
 		public static readonly DependencyProperty ProgressValueProperty =
 			DependencyProperty.Register(nameof(ProgressValue), typeof(double?), typeof(TaskbarMessage), new UIPropertyMetadata(null));
 
@@ -42,6 +47,7 @@ namespace MetroTrilithon.Interactivity
 			get { return (ImageSource)this.GetValue(OverlayProperty); }
 			set { this.SetValue(OverlayProperty, value); }
 		}
+
 		public static readonly DependencyProperty OverlayProperty =
 			DependencyProperty.Register(nameof(Overlay), typeof(ImageSource), typeof(TaskbarMessage), new UIPropertyMetadata(null));
 
@@ -54,6 +60,7 @@ namespace MetroTrilithon.Interactivity
 			get { return (string)this.GetValue(DescriptionProperty); }
 			set { this.SetValue(DescriptionProperty, value); }
 		}
+
 		public static readonly DependencyProperty DescriptionProperty =
 			DependencyProperty.Register(nameof(Description), typeof(string), typeof(TaskbarMessage), new UIPropertyMetadata(null));
 
@@ -66,6 +73,7 @@ namespace MetroTrilithon.Interactivity
 			get { return (Thickness?)this.GetValue(ThumbnailClipMarginProperty); }
 			set { this.SetValue(ThumbnailClipMarginProperty, value); }
 		}
+
 		public static readonly DependencyProperty ThumbnailClipMarginProperty =
 			DependencyProperty.Register(nameof(ThumbnailClipMargin), typeof(Thickness?), typeof(TaskbarMessage), new UIPropertyMetadata(null));
 
@@ -78,9 +86,27 @@ namespace MetroTrilithon.Interactivity
 			get { return (ThumbButtonInfoCollection)this.GetValue(ThumbButtonInfosProperty); }
 			set { this.SetValue(ThumbButtonInfosProperty, value); }
 		}
+
 		public static readonly DependencyProperty ThumbButtonInfosProperty =
 			DependencyProperty.Register(nameof(ThumbButtonInfos), typeof(ThumbButtonInfoCollection), typeof(TaskbarMessage), new UIPropertyMetadata(null));
 
 		#endregion
+
+		public TaskbarMessage() { }
+		public TaskbarMessage(string messageKey) : base(messageKey) { }
+
+		protected override Freezable CreateInstanceCore()
+		{
+			return new TaskbarMessage
+			{
+				MessageKey = this.MessageKey,
+				ProgressState = this.ProgressState,
+				ProgressValue = this.ProgressValue,
+				Overlay = this.Overlay,
+				Description = this.Description,
+				ThumbnailClipMargin = this.ThumbnailClipMargin,
+				ThumbButtonInfos = this.ThumbButtonInfos,
+			};
+		}
 	}
 }

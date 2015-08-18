@@ -9,6 +9,9 @@ using Livet.Messaging;
 
 namespace MetroTrilithon.Interactivity
 {
+	/// <summary>
+	/// <see cref="TaskbarMessage"/> を受信し、アタッチされた <see cref="Window"/> の <see cref="Window.TaskbarItemInfo"/> プロパティを設定する機能を提供します。
+	/// </summary>
 	public class TaskbarMessageAction : InteractionMessageAction<Window>
 	{
 		protected override void InvokeAction(InteractionMessage interactionMessage)
