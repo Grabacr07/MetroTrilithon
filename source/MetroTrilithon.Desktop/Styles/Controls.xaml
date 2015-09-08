@@ -4,6 +4,9 @@
 	<ResourceDictionary.MergedDictionaries>
 		<ResourceDictionary Source="pack://application:,,,/MetroTrilithon.Desktop;component/Styles/Controls.FlatSlider.xaml" />
 		<ResourceDictionary Source="pack://application:,,,/MetroTrilithon.Desktop;component/Styles/Controls.MetroDialog.xaml" />
+		<ResourceDictionary Source="pack://application:,,,/MetroTrilithon.Desktop;component/Styles/Controls.PinButton.xaml" />
+		<ResourceDictionary Source="pack://application:,,,/MetroTrilithon.Desktop;component/Styles/Controls.TabControl.xaml" />
+		<ResourceDictionary Source="pack://application:,,,/MetroTrilithon.Desktop;component/Styles/Controls.Text.xaml" />
 	</ResourceDictionary.MergedDictionaries>
 
 </ResourceDictionary>
