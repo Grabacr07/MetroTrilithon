@@ -101,14 +101,12 @@ namespace MetroTrilithon.Mvvm
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		public void Initialize()
 		{
-			this.IsClosed = false;
+			if (this.IsClosed) return;
+
 			this.DialogResult = false;
 
 			this.InitializeCore();
 			this.IsInitialized = true;
-
-			this.CompositeDisposable.Add(() => this.IsClosed = true);
-			this.CompositeDisposable.Add(() => this.IsInitialized = false);
 		}
 
 		/// <summary>
@@ -156,6 +154,14 @@ namespace MetroTrilithon.Mvvm
 			if (this.IsClosed) return;
 
 			this.SendWindowAction(WindowAction.Close);
+		}
+
+		protected override void Dispose(bool disposing)
+		{
+			this.IsClosed = true;
+			this.IsInitialized = false;
+
+			base.Dispose(disposing);
 		}
 
 		protected void SendWindowAction(WindowAction action)
