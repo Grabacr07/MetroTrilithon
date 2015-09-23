@@ -38,6 +38,7 @@
   <ItemGroup>
     <Compile Include="Lifetime\Disposable.cs" />
     <Compile Include="Lifetime\IDisposableHolder.cs" />
+    <Compile Include="Lifetime\SerialDisposable.cs" />
     <Compile Include="Linq\EnumerableEx.cs" />
     <Compile Include="Lifetime\DisposableExtensions.cs" />
     <Compile Include="Mvvm\Notifier.cs" />
