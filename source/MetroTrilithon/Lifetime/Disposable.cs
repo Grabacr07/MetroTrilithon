@@ -14,20 +14,20 @@ namespace MetroTrilithon.Lifetime
 
 		private class AnonymousDisposable : IDisposable
 		{
-			private bool isDisposed;
-			private readonly Action dispose;
+			private bool _isDisposed;
+			private readonly Action _dispose;
 
 			public AnonymousDisposable(Action dispose)
 			{
-				this.dispose = dispose;
+				this._dispose = dispose;
 			}
 
 			public void Dispose()
 			{
-				if (this.isDisposed) return;
+				if (this._isDisposed) return;
 
-				this.isDisposed = true;
-				this.dispose();
+				this._isDisposed = true;
+				this._dispose();
 			}
 		}
 	}
