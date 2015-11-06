@@ -44,6 +44,14 @@ namespace MetroTrilithon.Serialization
 			return false;
 		}
 
+		public bool RemoveValue(string key)
+		{
+			lock (this._sync)
+			{
+				return this._settings.Remove(key);
+			}
+		}
+
 		public void Save()
 		{
 			if (this._settings.Count == 0) return;

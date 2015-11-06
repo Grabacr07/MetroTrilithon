@@ -82,6 +82,27 @@ namespace MetroTrilithon.Serialization
 			return new ValueChangedEventListener(this, listener);
 		}
 
+		public virtual void Reset()
+		{
+			if (!this.Provider.IsLoaded)
+			{
+				this.Provider.Load();
+			}
+
+			T old;
+			if (this.Provider.TryGetValue(this.Key, out old))
+			{
+				if (this.Provider.RemoveValue(this.Key))
+				{
+					this._value = default(T);
+					this._cached = false;
+					this.OnValueChanged(old, this.Default);
+
+					if (this.AutoSave) this.Provider.Save();
+				}
+			}
+		}
+
 		private class ValueChangedEventListener : IDisposable
 		{
 			private readonly Action<T> _listener;

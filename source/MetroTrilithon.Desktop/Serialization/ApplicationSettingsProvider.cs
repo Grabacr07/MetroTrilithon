@@ -44,6 +44,11 @@ namespace MetroTrilithon.Serialization
 			}
 		}
 
+		public bool RemoveValue(string key)
+		{
+			return this.RemoveProperry(key);
+		}
+
 		private void AddProperty(string key, Type type)
 		{
 			if (this.Properties.OfType<SettingsProperty>().All(x => x.Name != key))
@@ -59,6 +64,19 @@ namespace MetroTrilithon.Serialization
 				this.Properties.Add(property);
 				this.Reload();
 			}
+		}
+
+		private bool RemoveProperry(string key)
+		{
+			if (this.Properties.OfType<SettingsProperty>().All(x => x.Name != key))
+			{
+				return false;
+			}
+
+			this.Properties.Remove(key);
+			this.Reload();
+
+			return true;
 		}
 
 		void ISerializationProvider.Load()

@@ -15,5 +15,7 @@ namespace MetroTrilithon.Serialization
 		void SetValue<T>(string key, T value);
 
 		bool TryGetValue<T>(string key, out T value);
+
+		bool RemoveValue(string key);
 	}
 }
