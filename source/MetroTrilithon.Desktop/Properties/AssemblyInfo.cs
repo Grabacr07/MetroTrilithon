@@ -25,4 +25,4 @@ using System.Windows.Markup;
 [assembly: XmlnsDefinition("http://schemes.grabacr.net/winfx/2015/personal/interactivity", "MetroTrilithon.Interactivity")]
 
 [assembly: AssemblyVersion("0.1.5.0")]
-[assembly: AssemblyInformationalVersion("0.1.5")]
+[assembly: AssemblyInformationalVersion("0.1.5-alpha")]
