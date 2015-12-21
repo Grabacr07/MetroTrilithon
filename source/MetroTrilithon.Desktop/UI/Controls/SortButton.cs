@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace MetroTrilithon.Controls
+namespace MetroTrilithon.UI.Controls
 {
 	public class SortButton : CallMethodButton
 	{

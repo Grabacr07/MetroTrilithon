@@ -7,7 +7,7 @@ using System.Windows.Media;
 using System.Windows.Shell;
 using Livet.Messaging;
 
-namespace MetroTrilithon.Interactivity
+namespace MetroTrilithon.UI.Interactivity
 {
 	/// <summary>
 	/// <see cref="TaskbarMessageAction"/> 経由で <see cref="Window.TaskbarItemInfo"/> を設定するための相互作用メッセージを表します。

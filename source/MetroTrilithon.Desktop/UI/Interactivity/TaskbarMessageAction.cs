@@ -7,7 +7,7 @@ using System.Windows.Shell;
 using Livet.Behaviors.Messaging;
 using Livet.Messaging;
 
-namespace MetroTrilithon.Interactivity
+namespace MetroTrilithon.UI.Interactivity
 {
 	/// <summary>
 	/// <see cref="TaskbarMessage"/> を受信し、アタッチされた <see cref="Window"/> の <see cref="Window.TaskbarItemInfo"/> プロパティを設定する機能を提供します。

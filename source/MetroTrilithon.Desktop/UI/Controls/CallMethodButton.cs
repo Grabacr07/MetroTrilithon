@@ -6,7 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using Livet.Behaviors;
 
-namespace MetroTrilithon.Controls
+namespace MetroTrilithon.UI.Controls
 {
 	/// <summary>
 	/// クリックされたときに、指定したメソッドを実行する <see cref="Button"/> を表します。

@@ -6,56 +6,17 @@ using System.Xaml;
 
 namespace MetroTrilithon.Serialization
 {
-	public class FileSettingsProvider : ISerializationProvider
+	public class FileSettingsProvider : DictionaryProviderBase<SortedDictionary<string, object>>
 	{
 		private readonly string _path;
-		private readonly object _sync = new object();
-		private SortedDictionary<string, object> _settings = new SortedDictionary<string, object>();
-
-		public bool IsLoaded { get; private set; }
 
 		public FileSettingsProvider(string path)
 		{
 			this._path = path;
 		}
 
-
-		public void SetValue<T>(string key, T value)
+		protected override void SaveCore(SortedDictionary<string, object> settings)
 		{
-			lock (this._sync)
-			{
-				this._settings[key] = value;
-			}
-		}
-
-		public bool TryGetValue<T>(string key, out T value)
-		{
-			lock (this._sync)
-			{
-				object obj;
-				if (this._settings.TryGetValue(key, out obj) && obj is T)
-				{
-					value = (T)obj;
-					return true;
-				}
-			}
-
-			value = default(T);
-			return false;
-		}
-
-		public bool RemoveValue(string key)
-		{
-			lock (this._sync)
-			{
-				return this._settings.Remove(key);
-			}
-		}
-
-		public void Save()
-		{
-			if (this._settings.Count == 0) return;
-
 			var dir = Path.GetDirectoryName(this._path);
 			if (dir == null) throw new DirectoryNotFoundException();
 
@@ -64,39 +25,26 @@ namespace MetroTrilithon.Serialization
 				Directory.CreateDirectory(dir);
 			}
 
-			lock (this._sync)
+			using (var stream = new FileStream(this._path, FileMode.Create, FileAccess.ReadWrite))
 			{
-				using (var stream = new FileStream(this._path, FileMode.Create, FileAccess.ReadWrite))
-				{
-					XamlServices.Save(stream, this._settings);
-				}
+				XamlServices.Save(stream, settings);
 			}
 		}
 
-		public void Load()
+		protected override SortedDictionary<string, object> LoadCore()
 		{
 			if (File.Exists(this._path))
 			{
 				using (var stream = new FileStream(this._path, FileMode.Open, FileAccess.Read))
 				{
-					lock (this._sync)
-					{
-						var source = XamlServices.Load(stream) as IDictionary<string, object>;
-						this._settings = source == null
-							? new SortedDictionary<string, object>()
-							: new SortedDictionary<string, object>(source);
-					}
-				}
-			}
-			else
-			{
-				lock (this._sync)
-				{
-					this._settings = new SortedDictionary<string, object>();
+					var source = XamlServices.Load(stream) as IDictionary<string, object>;
+					return source == null
+						? new SortedDictionary<string, object>()
+						: new SortedDictionary<string, object>(source);
 				}
 			}
 
-			this.IsLoaded = true;
+			return new SortedDictionary<string, object>();
 		}
 	}
 }

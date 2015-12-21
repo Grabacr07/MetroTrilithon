@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Data;
 
-namespace MetroTrilithon.Converters
+namespace MetroTrilithon.UI.Converters
 {
 	public class EnumToBooleanConverter : IValueConverter
 	{

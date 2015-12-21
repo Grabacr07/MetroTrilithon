@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Documents;
 
-namespace MetroTrilithon.Controls
+namespace MetroTrilithon.UI.Controls
 {
 	public class HyperlinkEx : Hyperlink
 	{

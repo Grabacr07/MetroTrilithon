@@ -20,9 +20,9 @@ using System.Windows.Markup;
 	ResourceDictionaryLocation.SourceAssembly
 )]
 
-[assembly: XmlnsDefinition("http://schemes.grabacr.net/winfx/2015/personal/controls", "MetroTrilithon.Controls")]
-[assembly: XmlnsDefinition("http://schemes.grabacr.net/winfx/2015/personal/converters", "MetroTrilithon.Converters")]
-[assembly: XmlnsDefinition("http://schemes.grabacr.net/winfx/2015/personal/interactivity", "MetroTrilithon.Interactivity")]
+[assembly: XmlnsDefinition("http://schemes.grabacr.net/winfx/2015/personal/controls", "MetroTrilithon.UI.Controls")]
+[assembly: XmlnsDefinition("http://schemes.grabacr.net/winfx/2015/personal/converters", "MetroTrilithon.UI.Converters")]
+[assembly: XmlnsDefinition("http://schemes.grabacr.net/winfx/2015/personal/interactivity", "MetroTrilithon.UI.Interactivity")]
 
-[assembly: AssemblyVersion("0.1.5.0")]
-[assembly: AssemblyInformationalVersion("0.1.5-alpha")]
+[assembly: AssemblyVersion("0.1.6.0")]
+[assembly: AssemblyInformationalVersion("0.1.6-alpha")]

@@ -6,7 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interactivity;
 
-namespace MetroTrilithon.Interactivity
+namespace MetroTrilithon.UI.Interactivity
 {
 	public class ScrollBarThresholdBehavior : Behavior<ScrollViewer>
 	{

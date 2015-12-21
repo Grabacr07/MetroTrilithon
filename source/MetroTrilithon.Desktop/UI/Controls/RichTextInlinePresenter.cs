@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Markup;
 
-namespace MetroTrilithon.Controls
+namespace MetroTrilithon.UI.Controls
 {
 	[ContentProperty("Content")]
 	public class RichTextInlinePresenter : ContentPresenter

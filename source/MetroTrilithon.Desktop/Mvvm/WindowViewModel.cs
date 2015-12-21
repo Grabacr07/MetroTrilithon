@@ -8,7 +8,7 @@ using System.Windows.Shell;
 using Livet;
 using Livet.Messaging;
 using Livet.Messaging.Windows;
-using MetroTrilithon.Interactivity;
+using MetroTrilithon.UI.Interactivity;
 
 namespace MetroTrilithon.Mvvm
 {

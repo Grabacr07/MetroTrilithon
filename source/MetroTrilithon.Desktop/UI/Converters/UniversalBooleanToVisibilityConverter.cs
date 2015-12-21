@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 
-namespace MetroTrilithon.Converters
+namespace MetroTrilithon.UI.Converters
 {
 	public class UniversalBooleanToVisibilityConverter : IValueConverter
 	{

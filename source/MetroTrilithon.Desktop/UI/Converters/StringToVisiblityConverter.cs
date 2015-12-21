@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 
-namespace MetroTrilithon.Converters
+namespace MetroTrilithon.UI.Converters
 {
 	/// <summary>
 	/// 文字列が null または空文字のときに <see cref="Visibility.Collapsed"/>、それ以外のときに <see cref="Visibility.Visible"/> を返すコンバーターを定義します。
