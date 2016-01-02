@@ -32,15 +32,13 @@
 				Value="True" />
 		<Setter Property="TextOptions.TextFormattingMode"
 				Value="Display" />
-		<Setter Property="WindowChrome.WindowChrome">
+		<Setter Property="ShellChrome">
 			<Setter.Value>
 				<WindowChrome ResizeBorderThickness="1"
 							  GlassFrameThickness="0"
 							  CornerRadius="0" />
 			</Setter.Value>
 		</Setter>
-		<Setter Property="chrome:WindowChrome.Instance"
-				Value="{x:Static chrome:WindowChrome.Default}" />
 		<Setter Property="Template">
 			<Setter.Value>
 				<ControlTemplate TargetType="{x:Type metro:MetroWindow}">
