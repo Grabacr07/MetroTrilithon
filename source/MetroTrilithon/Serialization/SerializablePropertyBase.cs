@@ -74,6 +74,16 @@ namespace MetroTrilithon.Serialization
 			this.Key = key;
 			this.Provider = provider;
 			this.Default = defaultValue;
+
+			this.Provider.Reloaded += (sender, args) =>
+			{
+				var oldValue = this._value;
+				var newValue = this.Value;
+				if (!Equals(oldValue, newValue))
+				{
+					this.OnValueChanged(oldValue, newValue);
+				}
+			};
 		}
 
 		public virtual IDisposable Subscribe(Action<T> listener)
@@ -147,7 +157,7 @@ namespace MetroTrilithon.Serialization
 
 		event PropertyChangedEventHandler INotifyPropertyChanged.PropertyChanged
 		{
-			add { this.ValueChanged += (this._handlers[value] = (sender, args) => value(sender, new PropertyChangedEventArgs(nameof(Value)))); }
+			add { this.ValueChanged += (this._handlers[value] = (sender, args) => value(sender, new PropertyChangedEventArgs(nameof(this.Value)))); }
 			remove
 			{
 				EventHandler<ValueChangedEventArgs<T>> handler;

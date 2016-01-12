@@ -84,5 +84,11 @@ namespace MetroTrilithon.Serialization
 			this.Reload();
 			this.IsLoaded = true;
 		}
+
+		event EventHandler ISerializationProvider.Reloaded
+		{
+			add { }
+			remove { }
+		}
 	}
 }

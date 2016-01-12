@@ -12,6 +12,11 @@ namespace MetroTrilithon.Serialization
 
 		void Load();
 
+		/// <summary>
+		/// Occurs when the provider side has reloaded due.
+		/// </summary>
+		event EventHandler Reloaded;
+
 		void SetValue<T>(string key, T value);
 
 		bool TryGetValue<T>(string key, out T value);
