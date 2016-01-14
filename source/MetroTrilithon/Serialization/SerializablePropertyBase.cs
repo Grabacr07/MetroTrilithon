@@ -77,10 +77,21 @@ namespace MetroTrilithon.Serialization
 
 			this.Provider.Reloaded += (sender, args) =>
 			{
-				var oldValue = this._value;
-				var newValue = this.Value;
-				if (!Equals(oldValue, newValue))
+				if (this._cached)
 				{
+					this._cached = false;
+
+					var oldValue = this._value;
+					var newValue = this.Value;
+					if (!Equals(oldValue, newValue))
+					{
+						this.OnValueChanged(oldValue, newValue);
+					}
+				}
+				else
+				{
+					var oldValue = default(T);
+					var newValue = this.Value;
 					this.OnValueChanged(oldValue, newValue);
 				}
 			};
