@@ -32,10 +32,10 @@ namespace MetroTrilithon.Serialization
 					this.Provider.Load();
 				}
 
-				T obj;
+				object obj;
 				if (this.Provider.TryGetValue(this.Key, out obj))
 				{
-					this._value = obj;
+					this._value = this.DeserializeCore(obj);
 					this._cached = true;
 				}
 				else
@@ -57,7 +57,7 @@ namespace MetroTrilithon.Serialization
 				var old = this._value;
 				this._value = value;
 				this._cached = true;
-				this.Provider.SetValue(this.Key, value);
+				this.Provider.SetValue(this.Key, this.SerializeCore(value));
 				this.OnValueChanged(old, value);
 
 				if (this.AutoSave) this.Provider.Save();
@@ -97,6 +97,18 @@ namespace MetroTrilithon.Serialization
 			};
 		}
 
+
+		protected virtual object SerializeCore(T value)
+		{
+			return value;
+		}
+
+		protected virtual T DeserializeCore(object value)
+		{
+			return (T)value;
+		}
+
+
 		public virtual IDisposable Subscribe(Action<T> listener)
 		{
 			listener(this.Value);
@@ -110,14 +122,14 @@ namespace MetroTrilithon.Serialization
 				this.Provider.Load();
 			}
 
-			T old;
+			object old;
 			if (this.Provider.TryGetValue(this.Key, out old))
 			{
 				if (this.Provider.RemoveValue(this.Key))
 				{
 					this._value = default(T);
 					this._cached = false;
-					this.OnValueChanged(old, this.Default);
+					this.OnValueChanged(this.DeserializeCore(old), this.Default);
 
 					if (this.AutoSave) this.Provider.Save();
 				}
