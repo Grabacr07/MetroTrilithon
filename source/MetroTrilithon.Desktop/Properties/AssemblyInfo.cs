@@ -8,7 +8,7 @@ using System.Windows.Markup;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("grabacr.net")]
 [assembly: AssemblyProduct("MetroTrilithon")]
-[assembly: AssemblyCopyright("Copyright © 2015 Grabacr07")]
+[assembly: AssemblyCopyright("Copyright © 2015 Manato KAMEYA")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -24,5 +24,5 @@ using System.Windows.Markup;
 [assembly: XmlnsDefinition("http://schemes.grabacr.net/winfx/2015/personal/converters", "MetroTrilithon.UI.Converters")]
 [assembly: XmlnsDefinition("http://schemes.grabacr.net/winfx/2015/personal/interactivity", "MetroTrilithon.UI.Interactivity")]
 
-[assembly: AssemblyVersion("0.1.8.0")]
-[assembly: AssemblyInformationalVersion("0.1.8-alpha")]
+[assembly: AssemblyVersion("0.2.0")]
+[assembly: AssemblyInformationalVersion("0.2.0")]

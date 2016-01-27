@@ -6,7 +6,7 @@ using System.Reflection;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("grabacr.net")]
 [assembly: AssemblyProduct("MetroTrilithon")]
-[assembly: AssemblyCopyright("Copyright © 2015 Grabacr07")]
+[assembly: AssemblyCopyright("Copyright © 2015 Manato KAMEYA")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
