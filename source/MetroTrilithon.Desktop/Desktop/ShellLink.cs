@@ -12,10 +12,15 @@ namespace MetroTrilithon.Desktop
 	{
 		public static void Create(string path)
 		{
+			Create(path, Assembly.GetEntryAssembly());
+		}
+
+		public static void Create(string path, Assembly assembly)
+		{
 			var type = Type.GetTypeFromCLSID(CLSID.ShellLink);
 			var psl = (IShellLink)Activator.CreateInstance(type);
 
-			psl.SetPath(Assembly.GetExecutingAssembly().Location);
+			psl.SetPath(assembly.Location);
 
 			// ReSharper disable once SuspiciousTypeConversion.Global
 			var ppf = (IPersistFile)psl;

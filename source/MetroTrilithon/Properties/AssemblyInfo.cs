@@ -7,8 +7,6 @@ using System.Reflection;
 [assembly: AssemblyCompany("grabacr.net")]
 [assembly: AssemblyProduct("MetroTrilithon")]
 [assembly: AssemblyCopyright("Copyright © 2015 Manato KAMEYA")]
-[assembly: AssemblyTrademark("")]
-[assembly: AssemblyCulture("")]
 
-[assembly: AssemblyVersion("0.1.7.0")]
+[assembly: AssemblyVersion("0.1.7")]
 [assembly: AssemblyInformationalVersion("0.1.7")]
