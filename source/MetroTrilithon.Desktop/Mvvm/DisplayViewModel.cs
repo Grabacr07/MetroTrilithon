@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Livet;
+using MetroTrilithon.Serialization;
 
 namespace MetroTrilithon.Mvvm
 {
@@ -11,6 +12,16 @@ namespace MetroTrilithon.Mvvm
 		public static DisplayViewModel<T> Create<T>(T value, string display)
 		{
 			return new DisplayViewModel<T> { Value = value, Display = display, };
+		}
+
+		public static DisplayViewModel<T> ToDefaultDisplay<T>(this SerializableProperty<T> property, string display)
+		{
+			return new DisplayViewModel<T> { Value = property.Default, Display = display, };
+		}
+
+		public static IEnumerable<DisplayViewModel<TResult>> ToDisplay<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> valueSelector, Func<TSource, string> displaySelector)
+		{
+			return source.Select(x => new DisplayViewModel<TResult> { Value = valueSelector(x), Display = displaySelector(x), });
 		}
 	}
 
