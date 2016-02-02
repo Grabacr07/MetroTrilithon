@@ -105,6 +105,7 @@
     <Compile Include="Serialization\ApplicationSettingsProvider.cs" />
     <Compile Include="Serialization\FileSettingsProvider.cs" />
     <Compile Include="Serialization\SerializableProperty.cs" />
+    <Compile Include="UI\Interactivity\TaskbarThumbnailBehavior.cs" />
     <Compile Include="Utilities\TypeForwardedTo.g.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
