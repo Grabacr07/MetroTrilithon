@@ -47,6 +47,8 @@
     <Compile Include="Serialization\ISerializationProvider.cs" />
     <Compile Include="Serialization\SerializablePropertyBase.cs" />
     <Compile Include="Serialization\ValueChangedEventArgs.cs" />
+    <Compile Include="Threading.Tasks\TaskExtensions.cs" />
+    <Compile Include="Threading.Tasks\TaskLog.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="MetroTrilithon.nuspec" />

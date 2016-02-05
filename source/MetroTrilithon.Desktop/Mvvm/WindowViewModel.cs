@@ -8,6 +8,7 @@ using System.Windows.Shell;
 using Livet;
 using Livet.Messaging;
 using Livet.Messaging.Windows;
+using MetroTrilithon.Threading.Tasks;
 using MetroTrilithon.UI.Interactivity;
 
 namespace MetroTrilithon.Mvvm
@@ -182,7 +183,8 @@ namespace MetroTrilithon.Mvvm
 				ProgressState = state,
 				ProgressValue = value,
 			};
-			this.Messenger.Raise(message);
+			
+			this.Messenger.RaiseAsync(message).Forget();
 		}
 
 		protected void InvokeOnUIDispatcher(Action action)
