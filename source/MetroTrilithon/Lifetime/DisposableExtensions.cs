@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using StatefulModel;
 
 namespace MetroTrilithon.Lifetime
 {
@@ -15,10 +16,26 @@ namespace MetroTrilithon.Lifetime
 			if (obj == null)
 			{
 				disposable.Dispose();
-				return disposable;
+			}
+			else
+			{
+				obj.CompositeDisposable.Add(disposable);
 			}
 
-			obj.CompositeDisposable.Add(disposable);
+			return disposable;
+		}
+
+		public static T AddTo<T>(this T disposable, MultipleDisposable obj) where T : IDisposable
+		{
+			if (obj == null)
+			{
+				disposable.Dispose();
+			}
+			else
+			{
+				obj.Add(disposable);
+			}
+
 			return disposable;
 		}
 	}
