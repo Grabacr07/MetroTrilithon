@@ -10,7 +10,7 @@
 		<Setter Property="Foreground"
 				Value="{DynamicResource ActiveForegroundBrushKey}" />
 		<Setter Property="BorderThickness"
-				Value="1" />
+				Value=".99" />
 		<Setter Property="Padding"
 				Value="8,2" />
 		<Setter Property="HorizontalContentAlignment"

@@ -8,5 +8,5 @@ using System.Reflection;
 [assembly: AssemblyProduct("MetroTrilithon")]
 [assembly: AssemblyCopyright("Copyright © 2015 Manato KAMEYA")]
 
-[assembly: AssemblyVersion("0.1.7")]
-[assembly: AssemblyInformationalVersion("0.1.7")]
+[assembly: AssemblyVersion("0.2.0")]
+[assembly: AssemblyInformationalVersion("0.2.0")]
