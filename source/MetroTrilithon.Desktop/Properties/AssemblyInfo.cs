@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Markup;
@@ -21,5 +21,5 @@ using System.Windows.Markup;
 [assembly: XmlnsDefinition("http://schemes.grabacr.net/winfx/2015/personal/converters", "MetroTrilithon.UI.Converters")]
 [assembly: XmlnsDefinition("http://schemes.grabacr.net/winfx/2015/personal/interactivity", "MetroTrilithon.UI.Interactivity")]
 
-[assembly: AssemblyVersion("0.2.3")]
-[assembly: AssemblyInformationalVersion("0.2.3")]
+[assembly: AssemblyVersion("0.3.0")]
+[assembly: AssemblyInformationalVersion("0.3.0")]
