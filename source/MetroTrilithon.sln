@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.28010.2003
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MetroTrilithon", "MetroTrilithon\MetroTrilithon.csproj", "{DF381709-9F44-44ED-A7D6-ECDF157E620D}"
 EndProject
@@ -85,5 +85,8 @@ Global
 		{21B4AD15-D9FA-4873-BFAD-1EEEFBC6C264} = {0D5434CE-0B13-4032-919A-5D6AED3C623F}
 		{0AF0B9FF-D981-4D0F-A41F-C3AB6FE2F16D} = {0D5434CE-0B13-4032-919A-5D6AED3C623F}
 		{7F898B3A-DA17-4CAB-B387-5629B5FACA49} = {0D5434CE-0B13-4032-919A-5D6AED3C623F}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {150FB9FF-4828-493F-8705-0E97C94AA676}
 	EndGlobalSection
 EndGlobal
