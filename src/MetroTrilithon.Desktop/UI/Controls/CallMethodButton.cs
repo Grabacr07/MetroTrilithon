@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
 using Livet.Behaviors;
+using WPFUI.Controls;
 
 namespace MetroTrilithon.UI.Controls;
 
@@ -12,11 +12,6 @@ namespace MetroTrilithon.UI.Controls;
 /// </summary>
 public class CallMethodButton : Button
 {
-    static CallMethodButton()
-    {
-        DefaultStyleKeyProperty.OverrideMetadata(typeof(CallMethodButton), new FrameworkPropertyMetadata(typeof(CallMethodButton)));
-    }
-
     private readonly MethodBinder _binder = new();
     private readonly MethodBinderWithArgument _binderWithArgument = new();
     private bool _hasParameter;

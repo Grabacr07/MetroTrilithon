@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="LivetCask" Version="3.2.3" />
+    <PackageReference Include="WPF-UI" Version="1.2.1" />
   </ItemGroup>
 
   <ItemGroup>

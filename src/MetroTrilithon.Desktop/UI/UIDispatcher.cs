@@ -11,7 +11,7 @@ public static class UIDispatcher
 #if DEBUG
         = DebugFeatures.IsInDesignMode ? Dispatcher.CurrentDispatcher : default!;
 #else
-= default!;
+        = default!;
 #endif
 
     public static DispatcherAwaiter Switch()

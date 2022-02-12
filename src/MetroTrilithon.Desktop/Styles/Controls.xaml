@@ -2,10 +2,7 @@
 					xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
 	<ResourceDictionary.MergedDictionaries>
-		<ResourceDictionary Source="pack://application:,,,/MetroTrilithon.Desktop;component/Styles/Controls.FlatSlider.xaml" />
-		<ResourceDictionary Source="pack://application:,,,/MetroTrilithon.Desktop;component/Styles/Controls.TabControl.xaml" />
-        <ResourceDictionary Source="pack://application:,,,/MetroTrilithon.Desktop;component/Styles/Controls.Text.xaml" />
-        <ResourceDictionary Source="pack://application:,,,/MetroTrilithon.Desktop;component/Styles/Controls.ToggleButton.xaml" />
+		<ResourceDictionary Source="pack://application:,,,/MetroTrilithon.Desktop;component/UI/Controls/CallMethodButton.xaml" />
     </ResourceDictionary.MergedDictionaries>
 
 </ResourceDictionary>

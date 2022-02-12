@@ -7,48 +7,47 @@ using System.Windows.Shell;
 using Livet.Behaviors.Messaging;
 using Livet.Messaging;
 
-namespace MetroTrilithon.UI.Interactivity
+namespace MetroTrilithon.UI.Interactivity;
+
+/// <summary>
+/// <see cref="TaskbarMessage"/> を受信し、アタッチされた <see cref="Window"/> の <see cref="Window.TaskbarItemInfo"/> プロパティを設定する機能を提供します。
+/// </summary>
+public class TaskbarMessageAction : InteractionMessageAction<Window>
 {
-    /// <summary>
-    /// <see cref="TaskbarMessage"/> を受信し、アタッチされた <see cref="Window"/> の <see cref="Window.TaskbarItemInfo"/> プロパティを設定する機能を提供します。
-    /// </summary>
-    public class TaskbarMessageAction : InteractionMessageAction<Window>
+    protected override void InvokeAction(InteractionMessage interactionMessage)
     {
-        protected override void InvokeAction(InteractionMessage interactionMessage)
+        if (interactionMessage is not TaskbarMessage message) return;
+
+        var taskbarInfo = this.AssociatedObject.TaskbarItemInfo ?? (this.AssociatedObject.TaskbarItemInfo = new TaskbarItemInfo());
+
+        if (message.ProgressState != null)
         {
-            if (!(interactionMessage is TaskbarMessage message)) return;
+            taskbarInfo.ProgressState = message.ProgressState.Value;
+        }
 
-            var taskbarInfo = this.AssociatedObject.TaskbarItemInfo ?? (this.AssociatedObject.TaskbarItemInfo = new TaskbarItemInfo());
+        if (message.ProgressValue != null)
+        {
+            taskbarInfo.ProgressValue = message.ProgressValue.Value;
+        }
 
-            if (message.ProgressState != null)
-            {
-                taskbarInfo.ProgressState = message.ProgressState.Value;
-            }
+        if (message.Overlay != null)
+        {
+            taskbarInfo.Overlay = message.Overlay;
+        }
 
-            if (message.ProgressValue != null)
-            {
-                taskbarInfo.ProgressValue = message.ProgressValue.Value;
-            }
+        if (message.Description != null)
+        {
+            taskbarInfo.Description = message.Description;
+        }
 
-            if (message.Overlay != null)
-            {
-                taskbarInfo.Overlay = message.Overlay;
-            }
+        if (message.ThumbnailClipMargin != null)
+        {
+            taskbarInfo.ThumbnailClipMargin = message.ThumbnailClipMargin.Value;
+        }
 
-            if (message.Description != null)
-            {
-                taskbarInfo.Description = message.Description;
-            }
-
-            if (message.ThumbnailClipMargin != null)
-            {
-                taskbarInfo.ThumbnailClipMargin = message.ThumbnailClipMargin.Value;
-            }
-
-            if (message.ThumbButtonInfos != null)
-            {
-                taskbarInfo.ThumbButtonInfos = message.ThumbButtonInfos;
-            }
+        if (message.ThumbButtonInfos != null)
+        {
+            taskbarInfo.ThumbButtonInfos = message.ThumbButtonInfos;
         }
     }
 }
