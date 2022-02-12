@@ -1,0 +1,77 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="clr-namespace:MetroTrilithon.UI.Controls">
+
+    <Style TargetType="controls:PromptTextBox">
+        <Setter Property="Foreground"
+                Value="{DynamicResource TextFillColorPrimaryBrush}" />
+        <Setter Property="CaretBrush"
+                Value="{DynamicResource TextFillColorPrimaryBrush}" />
+        <Setter Property="Background"
+                Value="{DynamicResource ControlFillColorDefaultBrush}" />
+        <Setter Property="BorderBrush"
+                Value="{DynamicResource ControlElevationBorderBrush}" />
+        <Setter Property="Padding"
+                Value="6,4" />
+        <Setter Property="FontSize"
+                Value="14" />
+        <Setter Property="SnapsToDevicePixels"
+                Value="True" />
+        <Setter Property="Prompt"
+                Value="プロンプト" />
+        <Setter Property="PromptBrush"
+                Value="{DynamicResource TextFillColorDisabledBrush}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="controls:PromptTextBox">
+                    <Border x:Name="MainBorder"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="1,1,1,0"
+                            CornerRadius="4">
+                        <Border x:Name="BottomBorder"
+                                Padding="2"
+                                BorderThickness="0,0,0,2"
+                                BorderBrush="{DynamicResource ControlStrokeColorSecondaryBrush}"
+                                CornerRadius="4">
+                            <Grid>
+                                <Border x:Name="promptText"
+                                        Visibility="Hidden"
+                                        HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                        VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
+                                    <TextBlock Text="{TemplateBinding Prompt}"
+                                               Foreground="{TemplateBinding PromptBrush}"
+                                               Margin="{TemplateBinding Padding}"
+                                               TextOptions.TextFormattingMode="{TemplateBinding TextOptions.TextFormattingMode}" />
+                                </Border>
+                                <ScrollViewer x:Name="PART_ContentHost"
+                                              Margin="0"
+                                              Style="{DynamicResource UiScrollViewer}" />
+                            </Grid>
+                        </Border>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsFocused"
+                                 Value="True">
+                            <Setter TargetName="BottomBorder"
+                                    Property="BorderBrush"
+                                    Value="{DynamicResource SystemAccentBrush}" />
+                        </Trigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsKeyboardFocusWithin"
+                                           Value="False" />
+                                <Condition Property="Text"
+                                           Value="" />
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="promptText"
+                                    Property="Visibility"
+                                    Value="Visible" />
+                        </MultiTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+</ResourceDictionary>

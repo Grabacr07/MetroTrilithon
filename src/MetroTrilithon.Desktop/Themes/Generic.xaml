@@ -4,6 +4,7 @@
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="/MetroTrilithon.Desktop;component/UI/Controls/BindableRichTextBox.xaml" />
         <ResourceDictionary Source="/MetroTrilithon.Desktop;component/UI/Controls/CallMethodButton.xaml" />
+        <ResourceDictionary Source="/MetroTrilithon.Desktop;component/UI/Controls/PromptTextBox.xaml" />
         <ResourceDictionary Source="/MetroTrilithon.Desktop;component/UI/Controls/RichTextView.xaml" />
     </ResourceDictionary.MergedDictionaries>
 

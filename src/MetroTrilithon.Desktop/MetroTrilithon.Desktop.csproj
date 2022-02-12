@@ -2,8 +2,9 @@
 
   <PropertyGroup>
     <TargetFramework>net6.0-windows</TargetFramework>
-    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
     <RootNamespace>MetroTrilithon</RootNamespace>
   </PropertyGroup>
 
@@ -14,12 +15,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MetroTrilithon\MetroTrilithon.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Page Update="UI\Controls\BindableRichTextBox.xaml">
-      <SubType>Designer</SubType>
-    </Page>
   </ItemGroup>
 
 </Project>
