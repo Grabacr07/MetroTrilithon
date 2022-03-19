@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 
 namespace MetroTrilithon.UI.Controls;
 
@@ -32,12 +31,12 @@ public static class Iconic
 
         var panel = new StackPanel()
         {
-            Orientation = Orientation.Horizontal,
+            Orientation = System.Windows.Controls.Orientation.Horizontal,
         };
         var icon = new TextBlock()
         {
             Text = split[0],
-            FontFamily = new FontFamily("Segoe MDL2 Assets"),
+            FontFamily = new System.Windows.Media.FontFamily("Segoe MDL2 Assets"),
             Margin = new Thickness(0, 3, 0, 0),
         };
         panel.Children.Add(icon);

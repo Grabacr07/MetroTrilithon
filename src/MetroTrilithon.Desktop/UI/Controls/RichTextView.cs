@@ -12,7 +12,7 @@ using System.Windows.Markup;
 namespace MetroTrilithon.UI.Controls;
 
 [ContentProperty(nameof(RichTextTemplates))]
-public class RichTextView : RichTextBox
+public class RichTextView : System.Windows.Controls.RichTextBox
 {
     static RichTextView()
     {

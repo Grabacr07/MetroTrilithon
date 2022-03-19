@@ -5,12 +5,14 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using Brush = System.Windows.Media.Brush;
+using Brushes = System.Windows.Media.Brushes;
 
 namespace MetroTrilithon.UI.Controls;
 
 [TemplateVisualState(Name = "Empty", GroupName = "TextStates")]
 [TemplateVisualState(Name = "NotEmpty", GroupName = "TextStates")]
-public class PromptTextBox : TextBox
+public class PromptTextBox : System.Windows.Controls.TextBox
 {
     static PromptTextBox()
     {

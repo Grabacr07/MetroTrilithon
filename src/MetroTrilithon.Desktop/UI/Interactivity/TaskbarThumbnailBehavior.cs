@@ -34,7 +34,7 @@ public class TaskbarThumbnailBehavior : Behavior<FrameworkElement>
         var window = this.GetWindow();
         if (window == null) return;
 
-        var screenPoint = element.PointToScreen(new Point(.0, .0));
+        var screenPoint = element.PointToScreen(new System.Windows.Point(.0, .0));
         var clientPoint = window.PointFromScreen(screenPoint);
         var clipMargin = new Thickness(
             clientPoint.X,

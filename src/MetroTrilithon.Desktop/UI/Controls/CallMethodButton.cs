@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows;
 using Livet.Behaviors;
-using WPFUI.Controls;
 
 namespace MetroTrilithon.UI.Controls;
 
 /// <summary>
-/// クリックされたときに、指定したメソッドを実行する <see cref="Button"/> を表します。
+/// クリックされたときに、指定したメソッドを実行する <see cref="WPFUI.Controls.Button"/> を表します。
 /// </summary>
-public class CallMethodButton : Button
+public class CallMethodButton : WPFUI.Controls.Button
 {
     private readonly MethodBinder _binder = new();
     private readonly MethodBinderWithArgument _binderWithArgument = new();

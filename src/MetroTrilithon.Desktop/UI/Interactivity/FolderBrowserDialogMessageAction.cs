@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Windows;
-using System.Windows.Forms;
 using Livet.Behaviors.Messaging;
 using Livet.Messaging;
 

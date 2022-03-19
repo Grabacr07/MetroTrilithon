@@ -9,7 +9,7 @@ using System.Windows.Markup;
 
 namespace MetroTrilithon.UI.Controls;
 
-public class BindableRichTextBox : RichTextBox
+public class BindableRichTextBox : System.Windows.Controls.RichTextBox
 {
     static BindableRichTextBox()
     {
