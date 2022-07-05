@@ -27,7 +27,6 @@ public class NavigationHelper
     public static void SetPropagationContext(DependencyObject element, object value)
         => element.SetValue(PropagationContextProperty, value);
 
-
     public static object GetPropagationContext(DependencyObject element)
         => element.GetValue(PropagationContextProperty);
 
@@ -55,10 +54,10 @@ public class NavigationHelper
                 if (args.First.CurrentPage is NavigationItem navigationItem
                     && args.Second.Content is FrameworkElement element)
                 {
-                    element.DataContext = element.DataContext = GetPropagationContext(navigationItem);
+                    element.DataContext = GetPropagationContext(navigationItem);
                 }
             });
-
-        #endregion
     }
+
+    #endregion
 }
