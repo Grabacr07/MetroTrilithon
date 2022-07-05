@@ -7,9 +7,9 @@ using Livet.Behaviors;
 namespace MetroTrilithon.UI.Controls;
 
 /// <summary>
-/// クリックされたときに、指定したメソッドを実行する <see cref="WPFUI.Controls.Button"/> を表します。
+/// クリックされたときに、指定したメソッドを実行する <see cref="Wpf.Ui.Controls.Button"/> を表します。
 /// </summary>
-public class CallMethodButton : WPFUI.Controls.Button
+public class CallMethodButton : Wpf.Ui.Controls.Button
 {
     private readonly MethodBinder _binder = new();
     private readonly MethodBinderWithArgument _binderWithArgument = new();

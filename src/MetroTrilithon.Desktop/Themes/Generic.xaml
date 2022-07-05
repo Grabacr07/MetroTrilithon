@@ -6,6 +6,7 @@
         <ResourceDictionary Source="/MetroTrilithon.Desktop;component/UI/Controls/CallMethodButton.xaml" />
         <ResourceDictionary Source="/MetroTrilithon.Desktop;component/UI/Controls/PromptTextBox.xaml" />
         <ResourceDictionary Source="/MetroTrilithon.Desktop;component/UI/Controls/RichTextView.xaml" />
+        <ResourceDictionary Source="/MetroTrilithon.Desktop;component/UI/Controls/TextPair.xaml" />
     </ResourceDictionary.MergedDictionaries>
 
 </ResourceDictionary>

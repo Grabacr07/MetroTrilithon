@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Windows;
+using System.Windows.Navigation;
 using Microsoft.Xaml.Behaviors;
-using WPFUI.Controls;
+using Wpf.Ui.Common;
+using Wpf.Ui.Controls;
+using Wpf.Ui.Controls.Navigation;
 
 namespace MetroTrilithon.UI.Controls;
 
@@ -11,7 +15,7 @@ public class NavigationHelper
 {
     #region PropagationContext attached property
 
-    private static readonly HashSet<Navigation> _knownItems = new();
+    private static readonly HashSet<NavigationBase> _knownItems = new();
 
     public static readonly DependencyProperty PropagationContextProperty
         = DependencyProperty.RegisterAttached(
@@ -32,20 +36,29 @@ public class NavigationHelper
         if (d is not NavigationItem item) throw new NotSupportedException($"The '{nameof(PropagationContextProperty).GetPropertyName()}' attached property is only supported for the '{nameof(NavigationItem)}' type.");
 
         var navigation = item.GetSelfAndAncestors()
-            .OfType<Navigation>()
+            .OfType<NavigationBase>()
             .FirstOrDefault();
-        if (navigation == null || _knownItems.Add(navigation) == false) return;
+        if (navigation?.Frame == null || _knownItems.Add(navigation) == false) return;
 
-        navigation.Navigated += HandleNavigated;
+        Observable.FromEvent<RoutedNavigationEvent, RoutedNavigationEventArgs>(
+#pragma warning disable CS8622
+                handler => (_, args) => handler(args),
+#pragma warning restore CS8622
+                handler => navigation.Navigated += handler,
+                handler => navigation.Navigated -= handler)
+            .Zip(Observable.FromEvent<NavigatedEventHandler, NavigationEventArgs>(
+                    handler => (_, args) => handler(args),
+                    handler => navigation.Frame.Navigated += handler,
+                    handler => navigation.Frame.Navigated -= handler))
+            .Subscribe(args =>
+            {
+                if (args.First.CurrentPage is NavigationItem navigationItem
+                    && args.Second.Content is FrameworkElement element)
+                {
+                    element.DataContext = element.DataContext = GetPropagationContext(navigationItem);
+                }
+            });
+
+        #endregion
     }
-
-    private static void HandleNavigated(object sender, RoutedEventArgs e)
-    {
-        if (sender is Navigation { Current: NavigationItem { Instance: FrameworkElement { DataContext: null } element } item })
-        {
-            element.DataContext = GetPropagationContext(item);
-        }
-    }
-
-    #endregion
 }
