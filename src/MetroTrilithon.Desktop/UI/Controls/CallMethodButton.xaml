@@ -2,6 +2,10 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:ctrls="clr-namespace:MetroTrilithon.UI.Controls"
                     xmlns:wpfui="http://schemas.lepo.co/wpfui/2022/xaml">
+    <ResourceDictionary.MergedDictionaries>
+        <wpfui:ThemesDictionary Theme="Dark" />
+        <wpfui:ControlsDictionary />
+    </ResourceDictionary.MergedDictionaries>
 
     <Style TargetType="{x:Type ctrls:CallMethodButton}"
            BasedOn="{StaticResource {x:Type wpfui:Button}}" />
