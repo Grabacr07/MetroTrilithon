@@ -7,15 +7,13 @@ namespace MetroTrilithon.UI;
 
 public static class UIDispatcher
 {
-    public static Dispatcher Instance { get; set; }
+    public static Dispatcher? Instance { get; set; }
 #if DEBUG
-        = DebugFeatures.IsInDesignMode ? Dispatcher.CurrentDispatcher : default!;
-#else
-        = default!;
+        = DesignFeatures.IsInDesignMode ? Dispatcher.CurrentDispatcher : default;
 #endif
 
     public static DispatcherAwaiter Switch()
-        => new(Instance);
+        => new(Instance ?? throw new NullReferenceException("Set the UIDispatcher.Instance property to the Dispatcher object when the application starts."));
 
     public readonly struct DispatcherAwaiter : INotifyCompletion
     {
