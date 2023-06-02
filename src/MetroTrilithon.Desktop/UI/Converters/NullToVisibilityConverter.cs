@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Windows.Data;
 
-namespace MetroTrilithon.UI.Controls;
+namespace MetroTrilithon.UI.Converters;
 
 public class NullToVisibilityConverter : IValueConverter
 {
@@ -12,6 +12,6 @@ public class NullToVisibilityConverter : IValueConverter
             ? VisibilityBoxes.CollapsedBox
             : VisibilityBoxes.VisibleBox;
 
-    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    object IValueConverter.ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         => throw new NotSupportedException();
 }

@@ -4,9 +4,9 @@ namespace MetroTrilithon.UI;
 
 public static class VisibilityBoxes
 {
-    public static object VisibleBox = Visibility.Visible;
-    public static object HiddenBox = Visibility.Hidden;
-    public static object CollapsedBox = Visibility.Collapsed;
+    public static readonly object VisibleBox = Visibility.Visible;
+    public static readonly object HiddenBox = Visibility.Hidden;
+    public static readonly object CollapsedBox = Visibility.Collapsed;
 
     public static object Box(Visibility value)
         => value switch

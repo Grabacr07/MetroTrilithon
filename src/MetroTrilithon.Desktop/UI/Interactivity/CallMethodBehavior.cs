@@ -6,7 +6,7 @@ using System.Windows;
 using Livet.Behaviors;
 using Microsoft.Xaml.Behaviors;
 
-namespace MetroTrilithon.UI.Controls;
+namespace MetroTrilithon.UI.Interactivity;
 
 public class CallMethodBehavior : Behavior<System.Windows.Controls.Primitives.ButtonBase>
 {

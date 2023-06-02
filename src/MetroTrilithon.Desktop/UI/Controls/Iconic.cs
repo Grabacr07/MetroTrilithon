@@ -31,7 +31,7 @@ public static class Iconic
 
         var panel = new StackPanel()
         {
-            Orientation = System.Windows.Controls.Orientation.Horizontal,
+            Orientation = Orientation.Horizontal,
         };
         var icon = new TextBlock()
         {

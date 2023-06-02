@@ -1,4 +1,4 @@
-﻿namespace MetroTrilithon.UI.Controls;
+﻿namespace MetroTrilithon.UI.Converters;
 
 public class BooleanConverter : BooleanConverterBase<bool>
 {

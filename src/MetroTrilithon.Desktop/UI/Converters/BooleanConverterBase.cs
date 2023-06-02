@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Data;
 
-namespace MetroTrilithon.UI.Controls;
+namespace MetroTrilithon.UI.Converters;
 
 public abstract class BooleanConverterBase<T> : IValueConverter
 {
