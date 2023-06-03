@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Markup;
+using MetroTrilithon.Properties;
 
 namespace MetroTrilithon.UI.Markup;
 
@@ -10,6 +11,6 @@ public class ControlsDictionary : ResourceDictionary
 {
     public ControlsDictionary()
     {
-        this.Source = new Uri("pack://application:,,,/MetroTrilithon.Desktop;component/Styles/Controls.xaml");
+        this.Source = new Uri(Definitions.MainDictionaryUri);
     }
 }

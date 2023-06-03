@@ -4,14 +4,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Markup;
 using System.Windows.Media.Imaging;
+using MetroTrilithon.Properties;
 
 namespace MetroTrilithon.UI.Markup;
 
 [MarkupExtensionReturnType(typeof(BitmapFrame))]
 public class IconExtension : MarkupExtension
 {
-    private const string _packPrefix = "pack://application:,,,";
-
     public string Source { get; set; }
 
     public int Size { get; set; }
@@ -24,12 +23,7 @@ public class IconExtension : MarkupExtension
 
     public override object? ProvideValue(IServiceProvider serviceProvider)
     {
-        if (Uri.TryCreate(
-                this.Source.StartsWith(_packPrefix, StringComparison.Ordinal)
-                    ? this.Source
-                    : _packPrefix + this.Source,
-                UriKind.Absolute,
-                out var uri))
+        if (Uri.TryCreate(Definitions.PackageUriAuthority + this.Source, UriKind.Absolute, out var uri))
         {
             var decoder = BitmapDecoder.Create(
                 uri,
