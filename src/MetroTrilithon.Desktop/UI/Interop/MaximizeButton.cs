@@ -36,31 +36,6 @@ public class MaximizeButton : TitleBarButton
 
     #endregion
 
-    #region IsRestoreMode readonly dependency property
-
-    private static readonly DependencyPropertyKey IsRestoreModePropertyKey
-        = DependencyProperty.RegisterReadOnly(
-            nameof(IsRestoreMode),
-            typeof(bool),
-            typeof(MaximizeButton),
-            new PropertyMetadata(BooleanBoxes.FalseBox));
-
-    public static readonly DependencyProperty IsRestoreModeProperty
-        = IsRestoreModePropertyKey.DependencyProperty;
-
-    public bool IsRestoreMode
-    {
-        get => (bool)this.GetValue(IsRestoreModeProperty);
-        private set => this.SetValue(IsRestoreModePropertyKey, BooleanBoxes.Box(value));
-    }
-
-    #endregion
-
-    protected override void OnWindowStateChanged(object? sender, EventArgs e)
-    {
-        this.IsRestoreMode = this.Window.WindowState == WindowState.Maximized;
-    }
-
     protected override void OnClick()
     {
         base.OnClick();

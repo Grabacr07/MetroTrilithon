@@ -3,9 +3,9 @@ using System.Reactive.Disposables;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls.Primitives;
+using System.Windows.Data;
 using Windows.Win32;
 using MetroTrilithon.Lifetime;
-using MetroTrilithon.Linq;
 
 namespace MetroTrilithon.UI.Interop;
 
@@ -40,23 +40,31 @@ public class TitleBarButton : ButtonBase, IWndProcListener
     protected virtual NCHITTEST HitTestReturnValue
         => NCHITTEST.HTHELP;
 
-    #region IsActive readonly dependency property
+    #region WindowIsActive dependency property
 
-    private static readonly DependencyPropertyKey IsActivePropertyKey
-        = DependencyProperty.RegisterReadOnly(
-            nameof(IsActive),
+    public static readonly DependencyProperty WindowIsActiveProperty
+        = DependencyProperty.Register(
+            nameof(WindowIsActive),
             typeof(bool),
             typeof(TitleBarButton),
             new PropertyMetadata(BooleanBoxes.FalseBox));
 
-    public static readonly DependencyProperty IsActiveProperty
-        = IsActivePropertyKey.DependencyProperty;
+    public bool WindowIsActive
+        => (bool)this.GetValue(WindowIsActiveProperty);
 
-    public bool IsActive
-    {
-        get => (bool)this.GetValue(IsActiveProperty);
-        private set => this.SetValue(IsActivePropertyKey, BooleanBoxes.Box(value));
-    }
+    #endregion
+
+    #region WindowState dependency property
+
+    public static readonly DependencyProperty WindowStateProperty
+        = DependencyProperty.Register(
+            nameof(WindowState),
+            typeof(WindowState),
+            typeof(TitleBarButton),
+            new PropertyMetadata(default(WindowState)));
+
+    public WindowState WindowState
+        => (WindowState)this.GetValue(WindowStateProperty);
 
     #endregion
 
@@ -88,12 +96,17 @@ public class TitleBarButton : ButtonBase, IWndProcListener
         _buttons.Add(this);
         this._listener.Add(() => _buttons.Remove(this));
 
-        this.Window.StateChanged += this.OnWindowStateChanged;
-        this.Window.Activated += this.OnWindowActivated;
-        this.Window.Deactivated += this.OnWindowDeactivated;
-        this._listener.Add(() => this.Window.StateChanged -= this.OnWindowStateChanged);
-        this._listener.Add(() => this.Window.Activated -= this.OnWindowActivated);
-        this._listener.Add(() => this.Window.Deactivated -= this.OnWindowDeactivated);
+        var bindingIsActive = new Binding(nameof(System.Windows.Window.IsActive))
+        {
+            Source = this.Window,
+        };
+        this.SetBinding(WindowIsActiveProperty, bindingIsActive);
+
+        var bindingState = new Binding(nameof(System.Windows.Window.WindowState))
+        {
+            Source = this.Window,
+        };
+        this.SetBinding(WindowStateProperty, bindingState);
     }
 
     protected virtual void OnUnloaded(object sender, RoutedEventArgs e)
@@ -101,20 +114,6 @@ public class TitleBarButton : ButtonBase, IWndProcListener
         if (DesignFeatures.IsInDesignMode) return;
 
         this._listener.Clear();
-    }
-
-    protected virtual void OnWindowActivated(object? sender, EventArgs e)
-    {
-        this.IsActive = true;
-    }
-
-    protected virtual void OnWindowDeactivated(object? sender, EventArgs e)
-    {
-        this.IsActive = false;
-    }
-
-    protected virtual void OnWindowStateChanged(object? sender, EventArgs e)
-    {
     }
 
     protected override void OnClick()

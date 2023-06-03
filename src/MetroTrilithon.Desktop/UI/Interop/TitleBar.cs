@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Reactive.Disposables;
 using System.Windows;
 using System.Windows.Controls;
@@ -99,10 +98,6 @@ public class TitleBar : ContentControl, IWndProcListener
     public Window Window
         => this._window ??= this.GetWindow();
 
-
-    internal IReadOnlyCollection<TitleBarButton> KnownButtons
-        => this._knownButtons;
-
     public TitleBar()
     {
         this.Loaded += this.OnLoaded;
@@ -122,7 +117,11 @@ public class TitleBar : ContentControl, IWndProcListener
         if (this.GetTemplateChild(PART_MaximizeButton) is MaximizeButton maximizeButton)
         {
             maximizeButton.TitleBar = this;
-            var binding = new Binding(nameof(this.CanMaximize)) { Source = this, };
+            var binding = new Binding(nameof(this.CanMaximize))
+            {
+                Source = this,
+                Mode = BindingMode.TwoWay,
+            };
             BindingOperations.SetBinding(maximizeButton, MaximizeButton.CanMaximizeProperty, binding);
             this._knownButtons.Add(maximizeButton);
         }
@@ -130,7 +129,11 @@ public class TitleBar : ContentControl, IWndProcListener
         if (this.GetTemplateChild(PART_MinimizeButton) is MinimizeButton minimizeButton)
         {
             minimizeButton.TitleBar = this;
-            var binding = new Binding(nameof(this.CanMinimize)) { Source = this, };
+            var binding = new Binding(nameof(this.CanMinimize))
+            {
+                Source = this,
+                Mode = BindingMode.TwoWay,
+            };
             BindingOperations.SetBinding(minimizeButton, MinimizeButton.CanMinimizeProperty, binding);
             this._knownButtons.Add(minimizeButton);
         }
@@ -161,7 +164,7 @@ public class TitleBar : ContentControl, IWndProcListener
             return IntPtr.Zero;
         }
 
-        var result = IntPtr.Zero;
+        var returnValue = IntPtr.Zero;
         foreach (var button in this._knownButtons)
         {
             if (handled)
@@ -171,11 +174,11 @@ public class TitleBar : ContentControl, IWndProcListener
             }
             else
             {
-                result = ((IWndProcListener)button).WndProc(hwnd, msg, wParam, lParam, ref handled);
+                returnValue = ((IWndProcListener)button).WndProc(hwnd, msg, wParam, lParam, ref handled);
             }
         }
 
-        if (handled) return result;
+        if (handled) return returnValue;
 
         switch ((WM)msg)
         {

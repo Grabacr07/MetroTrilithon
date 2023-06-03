@@ -44,7 +44,8 @@
                                           Focusable="False" />
 
                         <StackPanel Grid.Column="1"
-                                    Orientation="Horizontal">
+                                    Orientation="Horizontal"
+                                    VerticalAlignment="Top">
                             <ctrls:MinimizeButton x:Name="PART_MinimizeButton" />
                             <ctrls:MaximizeButton x:Name="PART_MaximizeButton" />
                             <ctrls:CloseButton x:Name="PART_CloseButton" />
