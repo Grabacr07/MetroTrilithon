@@ -161,19 +161,30 @@ public class TitleBar : ContentControl, IWndProcListener
             return IntPtr.Zero;
         }
 
+        var result = IntPtr.Zero;
         foreach (var button in this._knownButtons)
         {
-            var result = ((IWndProcListener)button).WndProc(hwnd, msg, wParam, lParam, ref handled);
-            if (handled) return result;
+            if (handled)
+            {
+                // 他のボタンが応答を返していた場合、残りのボタンはすべて Leave 処理だけ
+                button.Leave();
+            }
+            else
+            {
+                result = ((IWndProcListener)button).WndProc(hwnd, msg, wParam, lParam, ref handled);
+            }
         }
+
+        if (handled) return result;
 
         switch ((WM)msg)
         {
             case WM.NCHITTEST when this.Contains(lParam):
                 handled = true;
                 return new IntPtr((int)NCHITTEST.HTCAPTION);
-        }
 
-        return IntPtr.Zero;
+            default:
+                return IntPtr.Zero;
+        }
     }
 }

@@ -125,14 +125,15 @@ public class TitleBarButton : ButtonBase, IWndProcListener
 
     private void Enter()
     {
-        (this.TitleBar?.KnownButtons ?? _buttons)
-            .Where(x => x != this)
-            .ForEach(x => x.Leave());
+        if (this.TitleBar == null)
+        {
+            foreach (var other in _buttons.Where(x => x != this)) other.Leave();
+        }
 
         this.SetValue(IsMouseOverPropertyKey, BooleanBoxes.TrueBox);
     }
 
-    private void Leave()
+    internal void Leave()
     {
         this.SetValue(IsPressedPropertyKey, BooleanBoxes.FalseBox);
         this.SetValue(IsMouseOverPropertyKey, BooleanBoxes.FalseBox);
