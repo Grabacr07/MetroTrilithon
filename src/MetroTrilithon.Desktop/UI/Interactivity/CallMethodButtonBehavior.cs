@@ -8,7 +8,7 @@ using Microsoft.Xaml.Behaviors;
 
 namespace MetroTrilithon.UI.Interactivity;
 
-public class CallMethodBehavior : Behavior<System.Windows.Controls.Primitives.ButtonBase>
+public class CallMethodButtonBehavior : Behavior<System.Windows.Controls.Primitives.ButtonBase>
 {
     private readonly MethodBinder _binder = new();
     private readonly MethodBinderWithArgument _binderWithArgument = new();
@@ -20,7 +20,7 @@ public class CallMethodBehavior : Behavior<System.Windows.Controls.Primitives.Bu
         = DependencyProperty.Register(
             nameof(MethodTarget),
             typeof(object),
-            typeof(CallMethodBehavior),
+            typeof(CallMethodButtonBehavior),
             new UIPropertyMetadata(null));
 
     public object? MethodTarget
@@ -37,7 +37,7 @@ public class CallMethodBehavior : Behavior<System.Windows.Controls.Primitives.Bu
         = DependencyProperty.Register(
             nameof(MethodName),
             typeof(string),
-            typeof(CallMethodBehavior),
+            typeof(CallMethodButtonBehavior),
             new UIPropertyMetadata(null));
 
     public string MethodName
@@ -54,22 +54,33 @@ public class CallMethodBehavior : Behavior<System.Windows.Controls.Primitives.Bu
         = DependencyProperty.Register(
             nameof(MethodParameter),
             typeof(object),
-            typeof(CallMethodBehavior),
+            typeof(CallMethodButtonBehavior),
             new UIPropertyMetadata(null, HandleMethodParameterChanged));
 
     private static void HandleMethodParameterChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        var source = (CallMethodBehavior)d;
+        var source = (CallMethodButtonBehavior)d;
         source._hasParameter = true;
     }
 
-    public object MethodParameter
+    public object? MethodParameter
     {
         get => this.GetValue(MethodParameterProperty);
         set => this.SetValue(MethodParameterProperty, value);
     }
 
     #endregion
+
+    public CallMethodButtonBehavior()
+    {
+    }
+
+    public CallMethodButtonBehavior(CallMethodInfo info)
+    {
+        this.MethodTarget = info.Target;
+        this.MethodName = info.Name;
+        this.MethodParameter = info.Parameter;
+    }
 
     protected override void OnAttached()
     {

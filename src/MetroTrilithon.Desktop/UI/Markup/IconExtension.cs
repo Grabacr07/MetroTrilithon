@@ -7,22 +7,14 @@ using System.Windows.Media.Imaging;
 
 namespace MetroTrilithon.UI.Markup;
 
+[MarkupExtensionReturnType(typeof(BitmapFrame))]
 public class IconExtension : MarkupExtension
 {
     private const string _packPrefix = "pack://application:,,,";
-    private string _source = "";
 
-    public string Source
-    {
-        get => this._source;
-        set => this._source = value.StartsWith(_packPrefix, StringComparison.Ordinal) ? value : _packPrefix + value;
-    }
+    public string Source { get; set; }
 
     public int Size { get; set; }
-
-    public IconExtension()
-    {
-    }
 
     public IconExtension(string source, int size)
     {
@@ -30,17 +22,27 @@ public class IconExtension : MarkupExtension
         this.Size = size;
     }
 
-    public override object ProvideValue(IServiceProvider serviceProvider)
+    public override object? ProvideValue(IServiceProvider serviceProvider)
     {
-        var decoder = BitmapDecoder.Create(
-            new Uri(this.Source),
-            BitmapCreateOptions.DelayCreation,
-            BitmapCacheOption.OnDemand);
+        if (Uri.TryCreate(
+                this.Source.StartsWith(_packPrefix, StringComparison.Ordinal)
+                    ? this.Source
+                    : _packPrefix + this.Source,
+                UriKind.Absolute,
+                out var uri))
+        {
+            var decoder = BitmapDecoder.Create(
+                uri,
+                BitmapCreateOptions.DelayCreation,
+                BitmapCacheOption.OnDemand);
 
-        return decoder.Frames
-                .SingleOrDefault(f => (int)f.Width == this.Size)
-            ?? decoder.Frames
-                .OrderBy(f => f.Width)
-                .First();
+            return decoder.Frames
+                    .SingleOrDefault(f => (int)f.Width == this.Size)
+                ?? decoder.Frames
+                    .OrderBy(f => f.Width)
+                    .First();
+        }
+
+        return null;
     }
 }
