@@ -3,12 +3,14 @@
                     xmlns:ctrls="clr-namespace:MetroTrilithon.UI.Interop">
 
     <Style TargetType="ctrls:TitleBar">
+        <Setter Property="OverridesDefaultStyle"
+                Value="True" />
         <Setter Property="Background"
                 Value="Transparent" />
         <Setter Property="Foreground"
                 Value="{DynamicResource TextFillColorPrimaryBrush}" />
         <Setter Property="Padding"
-                Value="0" />
+                Value="16" />
         <Setter Property="HorizontalAlignment"
                 Value="Stretch" />
         <Setter Property="VerticalAlignment"
@@ -17,13 +19,13 @@
                 Value="Stretch" />
         <Setter Property="VerticalContentAlignment"
                 Value="Stretch" />
+        <Setter Property="FontSize"
+                Value="12" />
         <Setter Property="FontWeight"
                 Value="Normal" />
         <Setter Property="Focusable"
                 Value="False" />
         <Setter Property="SnapsToDevicePixels"
-                Value="True" />
-        <Setter Property="OverridesDefaultStyle"
                 Value="True" />
         <Setter Property="Template">
             <Setter.Value>
@@ -32,25 +34,56 @@
                           HorizontalAlignment="{TemplateBinding HorizontalAlignment}"
                           VerticalAlignment="{TemplateBinding VerticalAlignment}"
                           SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
+                        <Grid Margin="{TemplateBinding Padding}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
 
-                        <ContentPresenter Grid.Column="0"
-                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                                          Margin="{TemplateBinding Padding}"
-                                          Focusable="False" />
+                            <ctrls:TitleBarIcon Grid.Column="0"
+                                                x:Name="PART_Icon"
+                                                Icon="{TemplateBinding Icon}" />
+                            <TextBlock x:Name="Title"
+                                       Grid.Column="1"
+                                       Text="{TemplateBinding Title}"
+                                       VerticalAlignment="Center" />
+                        </Grid>
 
-                        <StackPanel Grid.Column="1"
-                                    Orientation="Horizontal"
-                                    VerticalAlignment="Top">
-                            <ctrls:MinimizeButton x:Name="PART_MinimizeButton" />
-                            <ctrls:MaximizeButton x:Name="PART_MaximizeButton" />
-                            <ctrls:CloseButton x:Name="PART_CloseButton" />
-                        </StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <ContentPresenter Grid.Column="0"
+                                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                              Focusable="False" />
+                            <StackPanel Grid.Column="1"
+                                        Orientation="Horizontal"
+                                        VerticalAlignment="Top">
+                                <ctrls:MinimizeButton x:Name="PART_MinimizeButton"
+                                                      CanMinimize="{TemplateBinding CanMinimize}" />
+                                <ctrls:MaximizeButton x:Name="PART_MaximizeButton"
+                                                      CanMaximize="{TemplateBinding CanMaximize}" />
+                                <ctrls:CloseButton x:Name="PART_CloseButton" />
+                            </StackPanel>
+                        </Grid>
                     </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="Icon"
+                                 Value="{x:Null}">
+                            <Setter TargetName="PART_Icon"
+                                    Property="Visibility"
+                                    Value="Collapsed" />
+                        </Trigger>
+                        <Trigger Property="Title"
+                                 Value="{x:Null}">
+                            <Setter TargetName="Title"
+                                    Property="Visibility"
+                                    Value="Collapsed" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>

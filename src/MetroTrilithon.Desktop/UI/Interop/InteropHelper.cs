@@ -6,15 +6,15 @@ namespace MetroTrilithon.UI.Interop;
 
 internal static class InteropHelper
 {
-    public static IDisposable RegisterWndProc(IWndProcListener element)
+    public static IDisposable RegisterWndProc(IWindowProcedure element)
         => new WndProcListener(element.GetWindow(), element);
 
     private class WndProcListener : IDisposable
     {
-        private readonly IWndProcListener _element;
+        private readonly IWindowProcedure _element;
         private readonly IntPtr _hwnd;
 
-        public WndProcListener(Window window, IWndProcListener element)
+        public WndProcListener(Window window, IWindowProcedure element)
         {
             this._element = element;
 

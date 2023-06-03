@@ -18,6 +18,8 @@
                          Data="{DynamicResource PaletteRedBrush}" />
 
     <Style TargetType="interop:TitleBarButton">
+        <Setter Property="OverridesDefaultStyle"
+                Value="True" />
         <Setter Property="Width"
                 Value="{StaticResource TitleBarButtonWidth}" />
         <Setter Property="Height"
@@ -31,8 +33,6 @@
         <Setter Property="VerticalContentAlignment"
                 Value="Center" />
         <Setter Property="SnapsToDevicePixels"
-                Value="True" />
-        <Setter Property="OverridesDefaultStyle"
                 Value="True" />
         <Setter Property="KeyboardNavigation.IsTabStop"
                 Value="True" />

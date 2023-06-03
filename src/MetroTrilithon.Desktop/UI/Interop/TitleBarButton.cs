@@ -5,11 +5,10 @@ using System.Windows;
 using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using Windows.Win32;
-using MetroTrilithon.Lifetime;
 
 namespace MetroTrilithon.UI.Interop;
 
-public class TitleBarButton : ButtonBase, IWndProcListener
+public class TitleBarButton : ButtonBase, IWindowProcedure
 {
     private static readonly DependencyPropertyKey IsMouseOverPropertyKey;
     private static readonly DependencyPropertyKey IsPressedPropertyKey;
@@ -29,8 +28,8 @@ public class TitleBarButton : ButtonBase, IWndProcListener
             .GetValue(null) as DependencyPropertyKey ?? throw new InvalidOperationException("Cannot access to IsPressedPropertyKey");
     }
 
-    private readonly CompositeDisposable _listener = new();
     private Window? _window;
+    private IDisposable? _listener;
 
     protected Window Window
         => this._window ??= this.GetWindow();
@@ -84,17 +83,16 @@ public class TitleBarButton : ButtonBase, IWndProcListener
             if (titleBar != null)
             {
                 this.TitleBar = titleBar;
-                this.TitleBar.Add(this);
+                this.TitleBar.TitleBarButtons.Add(this);
             }
             else
             {
                 // If no instance of TitleBar is found, make it work with TitleBarButton alone.
-                this._listener.Add(InteropHelper.RegisterWndProc(this));
+                this._listener = InteropHelper.RegisterWndProc(this);
             }
         }
 
         _buttons.Add(this);
-        this._listener.Add(() => _buttons.Remove(this));
 
         var bindingIsActive = new Binding(nameof(System.Windows.Window.IsActive))
         {
@@ -113,7 +111,8 @@ public class TitleBarButton : ButtonBase, IWndProcListener
     {
         if (DesignFeatures.IsInDesignMode) return;
 
-        this._listener.Clear();
+        this._listener?.Dispose();
+        _buttons.Remove(this);
     }
 
     protected override void OnClick()
@@ -143,14 +142,14 @@ public class TitleBarButton : ButtonBase, IWndProcListener
         this.SetValue(IsPressedPropertyKey, BooleanBoxes.TrueBox);
     }
 
-    IntPtr IWndProcListener.WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+    IntPtr IWindowProcedure.WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
     {
         switch ((WM)msg)
         {
             case WM.NCHITTEST when this.Contains(lParam):
                 this.Enter();
                 handled = true;
-                return new IntPtr((int)this.HitTestReturnValue);
+                return (IntPtr)this.HitTestReturnValue;
 
             case WM.NCHITTEST:
                 this.Leave();

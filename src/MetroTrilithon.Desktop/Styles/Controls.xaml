@@ -6,6 +6,7 @@
         <ResourceDictionary Source="/MetroTrilithon.Desktop;component/UI/Controls/TextPair.xaml" />
         <ResourceDictionary Source="/MetroTrilithon.Desktop;component/UI/Interop/TitleBar.xaml" />
         <ResourceDictionary Source="/MetroTrilithon.Desktop;component/UI/Interop/TitleBarButton.xaml" />
+        <ResourceDictionary Source="/MetroTrilithon.Desktop;component/UI/Interop/TitleBarIcon.xaml" />
 
     </ResourceDictionary.MergedDictionaries>
 

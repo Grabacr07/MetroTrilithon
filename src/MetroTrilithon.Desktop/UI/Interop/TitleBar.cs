@@ -2,19 +2,21 @@
 using System.Reactive.Disposables;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using Windows.Win32;
+using Wpf.Ui.Controls.IconElements;
 
 namespace MetroTrilithon.UI.Interop;
 
 [TemplatePart(Name = PART_CloseButton, Type = typeof(CloseButton))]
 [TemplatePart(Name = PART_MaximizeButton, Type = typeof(MaximizeButton))]
 [TemplatePart(Name = PART_MinimizeButton, Type = typeof(MinimizeButton))]
-public class TitleBar : ContentControl, IWndProcListener
+[TemplatePart(Name = PART_Icon, Type = typeof(TitleBarIcon))]
+public class TitleBar : ContentControl, IWindowProcedure
 {
     private const string PART_CloseButton = nameof(PART_CloseButton);
     private const string PART_MaximizeButton = nameof(PART_MaximizeButton);
     private const string PART_MinimizeButton = nameof(PART_MinimizeButton);
+    private const string PART_Icon = nameof(PART_Icon);
 
     static TitleBar()
     {
@@ -89,14 +91,51 @@ public class TitleBar : ContentControl, IWndProcListener
 
     #endregion
 
+    #region Icon dependency property
+
+    public static readonly DependencyProperty IconProperty
+        = DependencyProperty.Register(
+            nameof(Icon),
+            typeof(IconElement),
+            typeof(TitleBar),
+            new PropertyMetadata(null));
+
+    public IconElement? Icon
+    {
+        get => (IconElement?)this.GetValue(IconProperty);
+        set => this.SetValue(IconProperty, value);
+    }
+
+    #endregion
+
+    #region Title dependency property
+
+    public static readonly DependencyProperty TitleProperty
+        = DependencyProperty.Register(
+            nameof(Title),
+            typeof(string),
+            typeof(TitleBar),
+            new PropertyMetadata(null));
+
+    public string? Title
+    {
+        get => (string?)this.GetValue(TitleProperty);
+        set => this.SetValue(TitleProperty, value);
+    }
+
+    #endregion
+
     // ReSharper disable once CollectionNeverQueried.Local
     private readonly CompositeDisposable _listeners = new();
-    private readonly HashSet<TitleBarButton> _knownButtons = new();
     private readonly List<UIElement> _interactiveElements = new();
     private Window? _window;
 
     public Window Window
         => this._window ??= this.GetWindow();
+
+    internal TitleBarIcon? TitleBarIcon { get; set; }
+
+    internal HashSet<TitleBarButton> TitleBarButtons { get; } = new();
 
     public TitleBar()
     {
@@ -111,31 +150,25 @@ public class TitleBar : ContentControl, IWndProcListener
         if (this.GetTemplateChild(PART_CloseButton) is CloseButton closeButton)
         {
             closeButton.TitleBar = this;
-            this._knownButtons.Add(closeButton);
+            this.TitleBarButtons.Add(closeButton);
         }
 
         if (this.GetTemplateChild(PART_MaximizeButton) is MaximizeButton maximizeButton)
         {
             maximizeButton.TitleBar = this;
-            var binding = new Binding(nameof(this.CanMaximize))
-            {
-                Source = this,
-                Mode = BindingMode.TwoWay,
-            };
-            BindingOperations.SetBinding(maximizeButton, MaximizeButton.CanMaximizeProperty, binding);
-            this._knownButtons.Add(maximizeButton);
+            this.TitleBarButtons.Add(maximizeButton);
         }
 
         if (this.GetTemplateChild(PART_MinimizeButton) is MinimizeButton minimizeButton)
         {
             minimizeButton.TitleBar = this;
-            var binding = new Binding(nameof(this.CanMinimize))
-            {
-                Source = this,
-                Mode = BindingMode.TwoWay,
-            };
-            BindingOperations.SetBinding(minimizeButton, MinimizeButton.CanMinimizeProperty, binding);
-            this._knownButtons.Add(minimizeButton);
+            this.TitleBarButtons.Add(minimizeButton);
+        }
+
+        if (this.GetTemplateChild(PART_Icon) is TitleBarIcon icon)
+        {
+            icon.TitleBar = this;
+            this.TitleBarIcon = icon;
         }
     }
 
@@ -153,10 +186,7 @@ public class TitleBar : ContentControl, IWndProcListener
         this._listeners.Clear();
     }
 
-    internal void Add(TitleBarButton button)
-        => this._knownButtons.Add(button);
-
-    IntPtr IWndProcListener.WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+    IntPtr IWindowProcedure.WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
     {
         if ((WM)msg is not (WM.NCHITTEST or WM.NCMOUSELEAVE or WM.NCLBUTTONDOWN or WM.NCLBUTTONUP)
             || this._interactiveElements.Any(element => element.Contains(lParam)))
@@ -165,7 +195,7 @@ public class TitleBar : ContentControl, IWndProcListener
         }
 
         var returnValue = IntPtr.Zero;
-        foreach (var button in this._knownButtons)
+        foreach (var button in this.TitleBarButtons)
         {
             if (handled)
             {
@@ -174,8 +204,13 @@ public class TitleBar : ContentControl, IWndProcListener
             }
             else
             {
-                returnValue = ((IWndProcListener)button).WndProc(hwnd, msg, wParam, lParam, ref handled);
+                returnValue = ((IWindowProcedure)button).WndProc(hwnd, msg, wParam, lParam, ref handled);
             }
+        }
+
+        if (handled == false && this.TitleBarIcon is not null)
+        {
+            returnValue = ((IWindowProcedure)this.TitleBarIcon).WndProc(hwnd, msg, wParam, lParam, ref handled);
         }
 
         if (handled) return returnValue;
@@ -184,7 +219,7 @@ public class TitleBar : ContentControl, IWndProcListener
         {
             case WM.NCHITTEST when this.Contains(lParam):
                 handled = true;
-                return new IntPtr((int)NCHITTEST.HTCAPTION);
+                return (IntPtr)NCHITTEST.HTCAPTION;
 
             default:
                 return IntPtr.Zero;
