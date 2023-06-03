@@ -9,6 +9,12 @@ using Wpf.Ui.Controls.IconElements;
 
 namespace MetroTrilithon.UI.Interop;
 
+public enum IconAction
+{
+    None,
+    CloseWindow,
+}
+
 public class TitleBarIcon : ContentControl, IWindowProcedure
 {
     static TitleBarIcon()
@@ -35,6 +41,23 @@ public class TitleBarIcon : ContentControl, IWindowProcedure
     {
         get => (IconElement?)this.GetValue(IconProperty);
         set => this.SetValue(IconProperty, value);
+    }
+
+    #endregion
+
+    #region Action dependency property
+
+    public static readonly DependencyProperty ActionProperty
+        = DependencyProperty.Register(
+            nameof(Action),
+            typeof(IconAction),
+            typeof(TitleBarIcon),
+            new PropertyMetadata(IconAction.None));
+
+    public IconAction Action
+    {
+        get => (IconAction)this.GetValue(ActionProperty);
+        set => this.SetValue(ActionProperty, value);
     }
 
     #endregion
@@ -76,7 +99,7 @@ public class TitleBarIcon : ContentControl, IWindowProcedure
     {
         switch ((WM)msg)
         {
-            case WM.NCHITTEST when this.Contains(lParam):
+            case WM.NCHITTEST when this.Action == IconAction.CloseWindow && this.Contains(lParam):
                 handled = true;
                 return (IntPtr)NCHITTEST.HTSYSMENU;
 

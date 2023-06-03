@@ -42,7 +42,8 @@
 
                             <ctrls:TitleBarIcon Grid.Column="0"
                                                 x:Name="PART_Icon"
-                                                Icon="{TemplateBinding Icon}" />
+                                                Icon="{TemplateBinding Icon}"
+                                                Action="{TemplateBinding IconAction}" />
                             <TextBlock x:Name="Title"
                                        Grid.Column="1"
                                        Text="{TemplateBinding Title}"

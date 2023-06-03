@@ -125,6 +125,23 @@ public class TitleBar : ContentControl, IWindowProcedure
 
     #endregion
 
+    #region IconAction dependency property
+
+    public static readonly DependencyProperty IconActionProperty
+        = DependencyProperty.Register(
+            nameof(IconAction),
+            typeof(IconAction),
+            typeof(TitleBar),
+            new PropertyMetadata(IconAction.None));
+
+    public IconAction IconAction
+    {
+        get => (IconAction)this.GetValue(IconActionProperty);
+        set => this.SetValue(IconActionProperty, value);
+    }
+
+    #endregion
+
     // ReSharper disable once CollectionNeverQueried.Local
     private readonly CompositeDisposable _listeners = new();
     private readonly List<UIElement> _interactiveElements = new();
