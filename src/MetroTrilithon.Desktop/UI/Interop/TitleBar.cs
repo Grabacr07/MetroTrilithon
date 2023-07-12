@@ -3,7 +3,7 @@ using System.Reactive.Disposables;
 using System.Windows;
 using System.Windows.Controls;
 using Windows.Win32;
-using Wpf.Ui.Controls.IconElements;
+using Wpf.Ui.Controls;
 
 namespace MetroTrilithon.UI.Interop;
 

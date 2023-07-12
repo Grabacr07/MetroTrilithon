@@ -6,14 +6,23 @@
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <RootNamespace>MetroTrilithon</RootNamespace>
+    <Product>MetroTrilithon</Product>
+    <Authors>@Grabacr07</Authors>
+    <Company>grabacr.net</Company>
+    <Copyright>Copyright © 2023 Manato Kameya</Copyright>
+    <Description>@Grabacr07's personal utility suite.</Description>
+    <RepositoryUrl>https://github.com/Grabacr07/MetroTrilithon</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/Grabacr07/MetroTrilithon</PackageProjectUrl>
+    <PackageLicenseFile>..\..\LICENSE.txt</PackageLicenseFile>
+    <PackageReadmeFile>..\..\README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="LivetCask" Version="4.0.2" />
-    <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.2-beta">
+    <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.18-beta">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="WPF-UI" Version="3.0.0-preview.2" />
+    <PackageReference Include="WPF-UI" Version="3.0.0-preview.4" />
   </ItemGroup>
 
   <ItemGroup>

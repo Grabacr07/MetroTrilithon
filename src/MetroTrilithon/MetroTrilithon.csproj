@@ -4,11 +4,20 @@
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Product>MetroTrilithon</Product>
+    <Authors>@Grabacr07</Authors>
+    <Company>grabacr.net</Company>
+    <Copyright>Copyright © 2023 Manato Kameya</Copyright>
+    <Description>@Grabacr07's personal utility suite.</Description>
+    <RepositoryUrl>https://github.com/Grabacr07/MetroTrilithon</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/Grabacr07/MetroTrilithon</PackageProjectUrl>
+    <PackageLicenseFile>..\..\LICENSE.txt</PackageLicenseFile>
+    <PackageReadmeFile>..\..\README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="LivetCask.EventListeners" Version="4.0.2" />
-    <PackageReference Include="ReactiveProperty" Version="9.1.2" />
+    <PackageReference Include="ReactiveProperty" Version="9.2.0" />
   </ItemGroup>
 
 </Project>
