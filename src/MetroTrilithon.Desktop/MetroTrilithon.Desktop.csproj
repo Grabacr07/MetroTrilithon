@@ -22,7 +22,7 @@
     <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.18-beta">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="WPF-UI" Version="3.0.0-preview.4" />
+    <PackageReference Include="WPF-UI" Version="3.0.0" />
   </ItemGroup>
 
   <ItemGroup>
