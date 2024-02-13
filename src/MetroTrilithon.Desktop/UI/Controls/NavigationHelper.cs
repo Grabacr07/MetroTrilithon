@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Windows;
 using Microsoft.Xaml.Behaviors;
-using Wpf.Ui.Common;
 using Wpf.Ui.Controls;
 
 namespace MetroTrilithon.UI.Controls;

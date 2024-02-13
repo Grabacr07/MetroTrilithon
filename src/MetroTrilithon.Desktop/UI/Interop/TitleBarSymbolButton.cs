@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
-using Wpf.Ui.Common;
+using Wpf.Ui.Controls;
 
 namespace MetroTrilithon.UI.Interop;
 
