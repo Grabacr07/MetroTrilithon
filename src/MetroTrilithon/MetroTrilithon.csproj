@@ -18,7 +18,6 @@
   <ItemGroup>
     <PackageReference Include="LivetCask.EventListeners" Version="4.0.2" />
     <PackageReference Include="ReactiveProperty" Version="9.6.0" />
-    <PackageReference Include="ReactiveProperty" Version="9.5.0" />
   </ItemGroup>
 
 </Project>
