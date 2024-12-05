@@ -57,7 +57,7 @@ public static class EnumerableFx
     {
         // めっっっちゃ適当な実装なので後でなんとかしたい
 
-        if (source is not IList<T> {IsReadOnly: false} list) list = source.ToList();
+        if (source is not ICollection<T> { IsReadOnly: false } list) list = source.ToList();
 
         while (list.Count < count) list.Add(selector(list.Count));
 
