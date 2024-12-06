@@ -28,4 +28,7 @@ public static class DisposableExtensions
 
         return disposable;
     }
+
+    public static IDisposable ToCompositeDisposable(this IEnumerable<IDisposable> disposables)
+        => new CompositeDisposable(disposables);
 }
