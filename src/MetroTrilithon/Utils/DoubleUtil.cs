@@ -11,5 +11,5 @@ public static class DoubleUtil
         => Math.Min(value, max);
 
     public static double EnsureRange(this double value, double min, double max)
-        => Math.Max(min, Math.Min(value, max));
+        => Math.Clamp(value, min, max);
 }

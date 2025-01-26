@@ -11,5 +11,5 @@ public static class Int32Util
         => Math.Min(value, max);
 
     public static int EnsureRange(this int value, int min, int max)
-        => Math.Max(min, Math.Min(value, max));
+        => Math.Clamp(value, min, max);
 }
