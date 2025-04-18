@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Concurrency;
@@ -10,6 +11,7 @@ using System.Reactive.Subjects;
 using System.Reflection;
 using System.Text.Json;
 using System.Threading.Tasks;
+using MetroTrilithon.Utils;
 using Mio;
 using Mio.Destructive;
 using Reactive.Bindings;
@@ -32,8 +34,8 @@ public abstract class ReactiveSettingsBase : IDisposable
     private readonly Subject<Unit> _save = new();
     private readonly Subject<Unit> _load = new();
     private readonly CompositeDisposable _disposables = [];
+    private readonly ScopedFlag _ignoreFileChanges = new();
     private readonly bool _isInitialized;
-    private bool _ignoreFileChanges;
 
     protected virtual bool AutoSave
         => true;
@@ -126,15 +128,23 @@ public abstract class ReactiveSettingsBase : IDisposable
 
     private void HandleReactivePropertyChanged<T>(T _)
     {
-        if (this.AutoSave == false) return;
+        if (this.AutoSave == false)
+        {
+            return;
+        }
 
         this._save.OnNext(Unit.Default);
     }
 
     private void HandleFileChanged(object sender, FileSystemEventArgs e)
     {
-        if (this._ignoreFileChanges) return;
+        if (this._ignoreFileChanges)
+        {
+            Debug.WriteLine($"📄{nameof(this.HandleFileChanged)}: {e.FullPath} \n └❌Ignore (because the change is caused by its own write operation)");
+            return;
+        }
 
+        Debug.WriteLine($"📄{nameof(this.HandleFileChanged)}: {e.FullPath}");
         this._load.OnNext(Unit.Default);
     }
 
@@ -166,11 +176,11 @@ public abstract class ReactiveSettingsBase : IDisposable
                 valueProperty.SetValue(reactiveProp, convertedValue);
             }
 
-            Console.WriteLine("🔧LoadSettings\n✅Success");
+            Debug.WriteLine($"📄{nameof(this.LoadSettings)}: {this._settingsFilePath.AsDestructive().FullName} \n └✅Success");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"🔧LoadSettings\n❌Error: {ex}");
+            Debug.WriteLine($"📄{nameof(this.LoadSettings)}: {this._settingsFilePath.AsDestructive().FullName} \n └❌Error: {ex}");
         }
     }
 
@@ -202,15 +212,16 @@ public abstract class ReactiveSettingsBase : IDisposable
             outerDictionary[this._settingsSectionName] = sectionDictionary;
             var newJson = JsonSerializer.Serialize(outerDictionary, _jsonSerializerOptions);
 
-            this._ignoreFileChanges = true;
-            this._settingsFilePath.AsDestructive().Write(newJson);
-            this._ignoreFileChanges = false;
+            using (this._ignoreFileChanges.Enable())
+            {
+                this._settingsFilePath.AsDestructive().Write(newJson);
+            }
 
-            Console.WriteLine("🔧SaveSettings\n✅Success");
+            Debug.WriteLine($"📄{nameof(this.SaveSettings)}: {this._settingsFilePath.AsDestructive().FullName} \n └✅Success");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"🔧SaveSettings\n❌Error: {ex}");
+            Debug.WriteLine($"📄{nameof(this.SaveSettings)}: {this._settingsFilePath.AsDestructive().FullName} \n └❌Error: {ex}");
         }
     }
 
