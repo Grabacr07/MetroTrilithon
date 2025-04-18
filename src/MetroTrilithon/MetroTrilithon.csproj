@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0;net7.0;net6.0</TargetFrameworks>
+    <TargetFrameworks>net8.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Product>MetroTrilithon</Product>
@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <PackageReference Include="LivetCask.EventListeners" Version="4.0.2" />
+    <PackageReference Include="Mio" Version="3.0.1" />
     <PackageReference Include="ReactiveProperty" Version="9.7.0" />
   </ItemGroup>
 

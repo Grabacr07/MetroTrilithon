@@ -13,9 +13,6 @@ public static class DisplayViewModel
     public static DisplayViewModel<T> Create<T>(T value, string display)
         => new(value, display);
 
-    public static DisplayViewModel<T> ToDefaultDisplay<T>(this SerializableProperty<T> property, string display)
-        => new(property.Default, display);
-
     public static IEnumerable<DisplayViewModel<TResult>> ToDisplay<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> valueSelector, Func<TSource, string> displaySelector)
         => source.Select(x => new DisplayViewModel<TResult>(valueSelector(x), displaySelector(x)));
 }
