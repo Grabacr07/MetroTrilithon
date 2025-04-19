@@ -35,24 +35,24 @@ public sealed class ScopedFlag : IEquatable<ScopedFlag>
     public bool Equals(ScopedFlag? other)
         => this.Value == other?.Value;
 
-    public override bool Equals(object? obj) =>
-        obj is ScopedFlag other && this.Equals(other);
+    public override bool Equals(object? obj)
+        => obj is ScopedFlag other && this.Equals(other);
 
     public override int GetHashCode()
         => this.Value.GetHashCode();
 
-    public static bool operator ==(ScopedFlag left, bool right) =>
-        left.Value == right;
+    public static bool operator ==(ScopedFlag left, bool right)
+        => left.Value == right;
 
-    public static bool operator !=(ScopedFlag left, bool right) =>
-        left.Value != right;
+    public static bool operator !=(ScopedFlag left, bool right)
+        => left.Value != right;
 
-    public static bool operator ==(bool left, ScopedFlag right) =>
-        left == right.Value;
+    public static bool operator ==(bool left, ScopedFlag right)
+        => left == right.Value;
 
-    public static bool operator !=(bool left, ScopedFlag right) =>
-        left != right.Value;
+    public static bool operator !=(bool left, ScopedFlag right)
+        => left != right.Value;
 
-    public static implicit operator bool(ScopedFlag flag) =>
-        flag.Value;
+    public static implicit operator bool(ScopedFlag flag)
+        => flag.Value;
 }
