@@ -7,9 +7,9 @@ using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using System.Reflection;
 using System.Text.Json;
 using System.Threading.Tasks;
+using MetroTrilithon.Linq;
 using MetroTrilithon.Utils;
 using Mio;
 using Mio.Destructive;
@@ -22,7 +22,7 @@ namespace MetroTrilithon.Serialization;
 /// Supports reading and writing settings values exposed by the derived type as <see cref="IReactiveProperty{T}"/>  
 /// in JSON format.  
 /// </summary>
-public abstract class ReactiveSettingsBase : IDisposable
+public abstract partial class ReactiveSettingsBase : IDisposable
 {
     private enum LoadReason
     {
@@ -35,16 +35,6 @@ public abstract class ReactiveSettingsBase : IDisposable
     {
         PropertyChanged,
         Explicit,
-    }
-
-    private class ReactivePropertyBroker(object propertyOwner, PropertyInfo propertyInfo)
-    {
-        public string PropertyName { get; } = propertyInfo.Name;
-
-        public Type ValueType { get; } = propertyInfo.PropertyType.GetGenericArguments()[0];
-
-        public IReactiveProperty Property { get; } = propertyInfo.GetValue(propertyOwner) as IReactiveProperty
-            ?? throw new InvalidOperationException($"Property '{propertyInfo.Name}' not found");
     }
 
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
@@ -92,7 +82,7 @@ public abstract class ReactiveSettingsBase : IDisposable
     {
         this._settingsFilePath = settingsFilePath;
         this._settingsSectionName = settingsSectionName ?? this.GetType().Name;
-        this._propertyBrokers = this.SubscribeToReactiveProperties();
+        this._propertyBrokers = [.. ReactivePropertyBroker.Enumerate(this)];
 
         var watcher = new FileSystemWatcher(this._settingsFilePath.Parent.AsDestructive().FullName, this._settingsFilePath.Name)
             {
@@ -138,40 +128,6 @@ public abstract class ReactiveSettingsBase : IDisposable
     {
         this._save.OnNext(SaveReason.Explicit);
     }
-
-    private ReactivePropertyBroker[] SubscribeToReactiveProperties()
-    {
-        var list = new List<ReactivePropertyBroker>();
-        var registerMethodInfo = this.GetType().GetMethod(nameof(this.RegisterPropertyChanged), BindingFlags.Instance | BindingFlags.NonPublic)
-            ?? throw new InvalidOperationException($"Method not found: {nameof(this.RegisterPropertyChanged)}");
-
-        foreach (var broker in this.GetType()
-                     .GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                     .Where(prop =>
-                         prop.PropertyType.IsGenericType &&
-                         prop.PropertyType.GetGenericTypeDefinition() == typeof(IReactiveProperty<>))
-                     .Select(x => new ReactivePropertyBroker(this, x)))
-        {
-            var registerGenericMethodInfo = registerMethodInfo.MakeGenericMethod(broker.ValueType);
-            if (registerGenericMethodInfo.Invoke(this, [broker.Property, broker.PropertyName]) is IDisposable disposable)
-            {
-                this._disposables.Add(disposable);
-            }
-
-            list.Add(broker);
-        }
-
-        return [.. list];
-    }
-
-    private IDisposable RegisterPropertyChanged<T>(IReactiveProperty<T> property, string propertyName)
-        => property
-            .Where(_ => this._ignoreChangesFromLoad == false)
-            .Subscribe(newValue =>
-            {
-                Debug.WriteLine($"🔔PropertyChanged ({propertyName}): {newValue}");
-                if (this.AutoSave) this._save.OnNext(SaveReason.PropertyChanged);
-            });
 
     /// <summary>
     /// Determines whether the received file system change event is caused by an external source or by the program itself.
@@ -249,7 +205,9 @@ public abstract class ReactiveSettingsBase : IDisposable
 
     public virtual void Dispose()
     {
+        this._propertyBrokers.Dispose();
         this._disposables.Dispose();
+
         GC.SuppressFinalize(this);
     }
 }
