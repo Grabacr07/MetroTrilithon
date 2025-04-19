@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Livet;
-using MetroTrilithon.Serialization;
 using Reactive.Bindings;
 
 namespace MetroTrilithon.Mvvm;
@@ -22,22 +20,16 @@ public interface IHaveDisplayName
     IReadOnlyReactiveProperty<string> Display { get; }
 }
 
-public class DisplayViewModel<T> : ViewModel, IHaveDisplayName
+public class DisplayViewModel<T>(T? value, string display) : ViewModel, IHaveDisplayName
 {
-    private readonly ReactiveProperty<T?> _value;
-    private readonly ReactiveProperty<string> _display;
+    private readonly ReactiveProperty<T?> _value = new(value);
+    private readonly ReactiveProperty<string> _display = new(display);
 
     public IReadOnlyReactiveProperty<T?> Value
         => this._value;
 
     public IReadOnlyReactiveProperty<string> Display
         => this._display;
-
-    public DisplayViewModel(T? value, string display)
-    {
-        this._value = new ReactiveProperty<T?>(value);
-        this._display = new ReactiveProperty<string>(display);
-    }
 
     public override string ToString()
         => this.Display.Value;

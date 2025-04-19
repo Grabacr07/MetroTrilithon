@@ -3,26 +3,17 @@ using System.Diagnostics;
 
 namespace MetroTrilithon.Threading.Tasks;
 
-public class TaskLog
+public class TaskLog(string callerMemberName, string callerFilePath, int callerLineNumber, Exception exception)
 {
-    public string CallerMemberName { get; }
+    public string CallerMemberName { get; } = callerMemberName;
 
-    public string CallerFilePath { get; }
+    public string CallerFilePath { get; } = callerFilePath;
 
-    public int CallerLineNumber { get; }
+    public int CallerLineNumber { get; } = callerLineNumber;
 
-    public Exception Exception { get; }
+    public Exception Exception { get; } = exception;
 
-    public TaskLog(string callerMemberName, string callerFilePath, int callerLineNumber, Exception exception)
-    {
-        this.CallerMemberName = callerMemberName;
-        this.CallerFilePath = callerFilePath;
-        this.CallerLineNumber = callerLineNumber;
-        this.Exception = exception;
-    }
-
-
-    public static EventHandler<TaskLog> Occurred = (sender, e) =>
+    public static EventHandler<TaskLog> Occurred = (_, e) =>
     {
         const string format = @"Unhandled Exception occurred from Task.Forget()
 -----------
@@ -37,6 +28,6 @@ Exception: {3}
 
     internal static void Raise(TaskLog log)
     {
-        Occurred?.Invoke(typeof(TaskLog), log);
+        Occurred.Invoke(typeof(TaskLog), log);
     }
 }

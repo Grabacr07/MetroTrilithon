@@ -29,7 +29,7 @@ public static class PropertyChangedExtensions
     private static class PropertyAccessor<T>
     {
         // ReSharper disable once StaticMemberInGenericType
-        private static readonly Dictionary<string, Delegate> _getters = new();
+        private static readonly Dictionary<string, Delegate> _getters = [];
 
         public static Func<T, TProperty> Getter<TProperty>(Expression<Func<T, TProperty>> propertyExpression, out string propertyName)
         {
