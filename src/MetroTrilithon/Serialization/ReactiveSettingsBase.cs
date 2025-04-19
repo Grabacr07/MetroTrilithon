@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -19,76 +18,103 @@ using Reactive.Bindings.Extensions;
 
 namespace MetroTrilithon.Serialization;
 
+/// <summary>  
+/// Supports reading and writing settings values exposed by the derived type as <see cref="IReactiveProperty{T}"/>  
+/// in JSON format.  
+/// </summary>
 public abstract class ReactiveSettingsBase : IDisposable
 {
-    private static readonly ConcurrentDictionary<string, FileSystemWatcher> _watcherCache = new();
+    private enum LoadReason
+    {
+        Initialize,
+        FileSystemWatcher,
+        Explicit,
+    }
+
+    private enum SaveReason
+    {
+        PropertyChanged,
+        Explicit,
+    }
+
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         WriteIndented = true,
-        PropertyNameCaseInsensitive = true
+        PropertyNameCaseInsensitive = true,
     };
 
     private readonly FilePath _settingsFilePath;
     private readonly string _settingsSectionName;
     private readonly IReadOnlyCollection<PropertyInfo> _reactiveProperties;
-    private readonly Subject<Unit> _save = new();
-    private readonly Subject<Unit> _load = new();
+    private readonly Subject<LoadReason> _load = new();
+    private readonly Subject<SaveReason> _save = new();
     private readonly CompositeDisposable _disposables = [];
-    private readonly ScopedFlag _ignoreFileChanges = new();
+    private readonly ScopedFlag _ignoreChangesFromLoad = new();
     private readonly bool _isInitialized;
+    private long _lastSaveTimestamp;
 
     protected virtual bool AutoSave
         => true;
 
+    /// <summary>
+    /// Gets the time span to ignore file system changes that are caused by the program itself.
+    /// </summary>
+    protected virtual TimeSpan SelfChangeIgnoreSpan
+        => TimeSpan.FromMilliseconds(500);
+
     protected ReactiveSettingsBase(FilePath settingsFilePath)
-        : this(settingsFilePath, null)
+        : this(settingsFilePath, null, null)
     {
     }
 
-    protected ReactiveSettingsBase(FilePath settingsFilePath, string? settingsSectionName)
+    protected ReactiveSettingsBase(FilePath settingsFilePath, string? settingsSectionName, IScheduler? scheduler)
     {
         this._settingsFilePath = settingsFilePath;
         this._settingsSectionName = settingsSectionName ?? this.GetType().Name;
         this._reactiveProperties = this.SubscribeToReactiveProperties();
 
-        this._save
-            .Where(_ => this._isInitialized)
-            .Throttle(TimeSpan.FromMilliseconds(1000))
-            .ObserveOn(Scheduler.Default)
-            .Subscribe(_ => this.SaveSettings())
-            .AddTo(this._disposables);
-        this._load
-            .Where(_ => this._isInitialized)
-            .Throttle(TimeSpan.FromMilliseconds(1000))
-            .ObserveOn(Scheduler.Default)
-            .Subscribe(_ => this.LoadSettings())
-            .AddTo(this._disposables);
-
-        var watcher = _watcherCache.GetOrAdd(
-            this._settingsFilePath.AsDestructive().FullName,
-            _ => new FileSystemWatcher(
-                this._settingsFilePath.Parent.AsDestructive().FullName,
-                this._settingsFilePath.Name)
+        var watcher = new FileSystemWatcher(this._settingsFilePath.Parent.AsDestructive().FullName, this._settingsFilePath.Name)
             {
                 NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size | NotifyFilters.FileName,
                 EnableRaisingEvents = true,
-            });
+            }
+            .AddTo(this._disposables);
 
-        watcher.Changed += this.HandleFileChanged;
-        this._disposables.Add(Disposable.Create(() => watcher.Changed -= this.HandleFileChanged));
+        this._load
+            .Merge(Observable
+                .FromEventPattern<FileSystemEventHandler, FileSystemEventArgs>(
+                    h => watcher.Changed += h,
+                    h => watcher.Changed -= h)
+                .Timestamp()
+                // ↑ 発生時刻を付与
+                // ↓ 自分の書き込みから一定時間が経過していれば通す
+                .Where(this.IsExternalFileChange)
+                .Select(_ => LoadReason.FileSystemWatcher))
+            .Where(_ => this._isInitialized)
+            .Throttle(TimeSpan.FromMilliseconds(1000))
+            .ObserveOn(scheduler ?? TaskPoolScheduler.Default)
+            .Subscribe(this.LoadSettings)
+            .AddTo(this._disposables);
+
+        this._save
+            .Where(_ => this._isInitialized)
+            .Throttle(TimeSpan.FromMilliseconds(1000))
+            .ObserveOn(scheduler ?? TaskPoolScheduler.Default)
+            .Subscribe(this.SaveSettings)
+            .AddTo(this._disposables);
+
         this._isInitialized = true;
-
-        this.LoadSettings();
+        this.LoadSettings(LoadReason.Initialize);
     }
 
     public virtual void Load()
     {
-        this._load.OnNext(Unit.Default);
+        this._load.OnNext(LoadReason.Explicit);
     }
 
     public virtual void Save()
     {
-        this._save.OnNext(Unit.Default);
+        this._save.OnNext(SaveReason.Explicit);
     }
 
     private PropertyInfo[] SubscribeToReactiveProperties()
@@ -128,27 +154,30 @@ public abstract class ReactiveSettingsBase : IDisposable
 
     private void HandleReactivePropertyChanged<T>(T _)
     {
-        if (this.AutoSave == false)
+        if (this._ignoreChangesFromLoad || this._isInitialized == false || this.AutoSave == false)
         {
             return;
         }
 
-        this._save.OnNext(Unit.Default);
+        this._save.OnNext(SaveReason.PropertyChanged);
     }
 
-    private void HandleFileChanged(object sender, FileSystemEventArgs e)
+    /// <summary>
+    /// Determines whether the received file system change event is caused by an external source or by the program itself.
+    /// </summary>
+    private bool IsExternalFileChange(Timestamped<EventPattern<FileSystemEventArgs>> args)
     {
-        if (this._ignoreFileChanges)
-        {
-            Debug.WriteLine($"📄{nameof(this.HandleFileChanged)}: {e.FullPath} \n └❌Ignore (because the change is caused by its own write operation)");
-            return;
-        }
+        var lastSaveMs = Interlocked.Read(ref this._lastSaveTimestamp);
+        var eventMs = args.Timestamp.ToUnixTimeMilliseconds();
+        var deltaMs = eventMs - lastSaveMs;
+        var result = deltaMs > this.SelfChangeIgnoreSpan.TotalMilliseconds;
 
-        Debug.WriteLine($"📄{nameof(this.HandleFileChanged)}: {e.FullPath}");
-        this._load.OnNext(Unit.Default);
+        Debug.WriteLine($"📄FileSystemWatcher.Changed: {args.Value.EventArgs.FullPath} \n └{(result ? "✅Pass" : "❌Ignore")} (Timestamp={args.Timestamp:HH:mm:ss.ffff}, LastSave={DateTimeOffset.FromUnixTimeMilliseconds(lastSaveMs):HH:mm:ss.ffff}, Δ={deltaMs}ms)");
+
+        return result;
     }
 
-    private void LoadSettings()
+    private void LoadSettings(LoadReason reason)
     {
         try
         {
@@ -173,21 +202,25 @@ public abstract class ReactiveSettingsBase : IDisposable
                 var valueProperty = reactiveProp.GetType().GetProperty("Value");
                 if (valueProperty == null) continue;
 
-                valueProperty.SetValue(reactiveProp, convertedValue);
+                using (this._ignoreChangesFromLoad.Enable())
+                {
+                    valueProperty.SetValue(reactiveProp, convertedValue);
+                }
             }
 
-            Debug.WriteLine($"📄{nameof(this.LoadSettings)}: {this._settingsFilePath.AsDestructive().FullName} \n └✅Success");
+            Debug.WriteLine($"📄{nameof(this.LoadSettings)}({reason}): {this._settingsFilePath.AsDestructive().FullName} \n └✅Success");
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"📄{nameof(this.LoadSettings)}: {this._settingsFilePath.AsDestructive().FullName} \n └❌Error: {ex}");
+            Debug.WriteLine($"📄{nameof(this.LoadSettings)}({reason}): {this._settingsFilePath.AsDestructive().FullName} \n └❌Error: {ex}");
         }
     }
 
     /// <summary>
-    /// 現在の <see cref="IReactiveProperty{T}"/> 値を、<see cref="_settingsSectionName"/> で指定したセクションで設定ファイルに上書き保存します。他のセクションは保持します。
+    /// Overwrites the configuration file's section specified by <see cref="_settingsSectionName"/>
+    /// with the current <see cref="IReactiveProperty{T}"/> values, preserving the other sections.
     /// </summary>
-    private void SaveSettings()
+    private void SaveSettings(SaveReason reason)
     {
         try
         {
@@ -210,18 +243,17 @@ public abstract class ReactiveSettingsBase : IDisposable
                     ?.ToDictionary(kvp => kvp.Key, kvp => (object)kvp.Value) ?? []
                 : [];
             outerDictionary[this._settingsSectionName] = sectionDictionary;
+
             var newJson = JsonSerializer.Serialize(outerDictionary, _jsonSerializerOptions);
 
-            using (this._ignoreFileChanges.Enable())
-            {
-                this._settingsFilePath.AsDestructive().Write(newJson);
-            }
+            Interlocked.Exchange(ref this._lastSaveTimestamp, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
+            this._settingsFilePath.AsDestructive().Write(newJson);
 
-            Debug.WriteLine($"📄{nameof(this.SaveSettings)}: {this._settingsFilePath.AsDestructive().FullName} \n └✅Success");
+            Debug.WriteLine($"📄{nameof(this.SaveSettings)}({reason}): {this._settingsFilePath.AsDestructive().FullName} \n └✅Success");
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"📄{nameof(this.SaveSettings)}: {this._settingsFilePath.AsDestructive().FullName} \n └❌Error: {ex}");
+            Debug.WriteLine($"📄{nameof(this.SaveSettings)}({reason}): {this._settingsFilePath.AsDestructive().FullName} \n └❌Error: {ex}");
         }
     }
 
