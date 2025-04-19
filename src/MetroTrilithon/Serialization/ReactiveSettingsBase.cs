@@ -22,7 +22,7 @@ namespace MetroTrilithon.Serialization;
 /// Supports reading and writing settings values exposed by the derived type as <see cref="IReactiveProperty{T}"/>  
 /// in JSON format.  
 /// </summary>
-public abstract class ReactiveSettingsBase : IDisposable
+public abstract partial class ReactiveSettingsBase : IDisposable
 {
     private enum LoadReason
     {
@@ -45,21 +45,32 @@ public abstract class ReactiveSettingsBase : IDisposable
 
     private readonly FilePath _settingsFilePath;
     private readonly string _settingsSectionName;
-    private readonly IReadOnlyCollection<PropertyInfo> _reactiveProperties;
+    private readonly IReadOnlyCollection<ReactivePropertyBroker> _propertyBrokers;
     private readonly Subject<LoadReason> _load = new();
     private readonly Subject<SaveReason> _save = new();
     private readonly CompositeDisposable _disposables = [];
     private readonly ScopedFlag _ignoreChangesFromLoad = new();
-    private readonly bool _isInitialized;
     private long _lastSaveTimestamp;
 
     protected virtual bool AutoSave
         => true;
 
     /// <summary>
+    /// Gets the interval for throttling multiple settings load calls.
+    /// </summary>
+    protected virtual TimeSpan LoadThrottlingDuration
+        => TimeSpan.FromMilliseconds(1000);
+
+    /// <summary>
+    /// Gets the interval for throttling multiple settings save calls.
+    /// </summary>
+    protected virtual TimeSpan SaveThrottlingDuration
+        => TimeSpan.FromMilliseconds(1000);
+
+    /// <summary>
     /// Gets the time span to ignore file system changes that are caused by the program itself.
     /// </summary>
-    protected virtual TimeSpan SelfChangeIgnoreSpan
+    protected virtual TimeSpan SelfChangeDuration
         => TimeSpan.FromMilliseconds(500);
 
     protected ReactiveSettingsBase(FilePath settingsFilePath)
@@ -71,7 +82,7 @@ public abstract class ReactiveSettingsBase : IDisposable
     {
         this._settingsFilePath = settingsFilePath;
         this._settingsSectionName = settingsSectionName ?? this.GetType().Name;
-        this._reactiveProperties = this.SubscribeToReactiveProperties();
+        this._propertyBrokers = this.SubscribeToReactiveProperties();
 
         var watcher = new FileSystemWatcher(this._settingsFilePath.Parent.AsDestructive().FullName, this._settingsFilePath.Name)
             {
@@ -90,21 +101,22 @@ public abstract class ReactiveSettingsBase : IDisposable
                 // ↓ 自分の書き込みから一定時間が経過していれば通す
                 .Where(this.IsExternalFileChange)
                 .Select(_ => LoadReason.FileSystemWatcher))
-            .Where(_ => this._isInitialized)
-            .Throttle(TimeSpan.FromMilliseconds(1000))
+            .Throttle(x => x == LoadReason.Initialize
+                ? Observable.Empty<long>()
+                : Observable.Timer(this.LoadThrottlingDuration))
             .ObserveOn(scheduler ?? TaskPoolScheduler.Default)
-            .Subscribe(this.LoadSettings)
+            .SelectMany(reason => Observable.FromAsync(() => this.LoadSettingsAsync(reason)))
+            .Subscribe()
             .AddTo(this._disposables);
 
         this._save
-            .Where(_ => this._isInitialized)
-            .Throttle(TimeSpan.FromMilliseconds(1000))
+            .Throttle(_ => Observable.Timer(this.SaveThrottlingDuration))
             .ObserveOn(scheduler ?? TaskPoolScheduler.Default)
-            .Subscribe(this.SaveSettings)
+            .SelectMany(reason => Observable.FromAsync(() => this.SaveSettingsAsync(reason)))
+            .Subscribe()
             .AddTo(this._disposables);
 
-        this._isInitialized = true;
-        this.LoadSettings(LoadReason.Initialize);
+        this._load.OnNext(LoadReason.Initialize);
     }
 
     public virtual void Load()
@@ -117,50 +129,39 @@ public abstract class ReactiveSettingsBase : IDisposable
         this._save.OnNext(SaveReason.Explicit);
     }
 
-    private PropertyInfo[] SubscribeToReactiveProperties()
+    private ReactivePropertyBroker[] SubscribeToReactiveProperties()
     {
-        var list = new List<PropertyInfo>();
-        var methodInfo = typeof(ReactiveSettingsBase).GetMethod(nameof(this.HandleReactivePropertyChanged), BindingFlags.Instance | BindingFlags.NonPublic)
-            ?? throw new InvalidOperationException($"Method not found: {nameof(this.HandleReactivePropertyChanged)}");
+        var list = new List<ReactivePropertyBroker>();
+        var registerMethodInfo = typeof(ReactiveSettingsBase).GetMethod(nameof(this.RegisterPropertyChanged), BindingFlags.Instance | BindingFlags.NonPublic)
+            ?? throw new InvalidOperationException($"Method not found: {nameof(this.RegisterPropertyChanged)}");
 
-        foreach (var prop in this.GetType()
+        foreach (var broker in this.GetType()
                      .GetProperties(BindingFlags.Instance | BindingFlags.Public)
                      .Where(prop =>
                          prop.PropertyType.IsGenericType &&
-                         prop.PropertyType.GetGenericTypeDefinition() == typeof(IReactiveProperty<>)))
+                         prop.PropertyType.GetGenericTypeDefinition() == typeof(IReactiveProperty<>))
+                     .Select(x => new ReactivePropertyBroker(this, x)))
         {
-            var reactiveProp = prop.GetValue(this);
-            if (reactiveProp == null) continue;
-
-            var valueType = prop.PropertyType.GetGenericArguments()[0];
-            var genericMethod = methodInfo.MakeGenericMethod(valueType);
-            var actionType = typeof(Action<>).MakeGenericType(valueType);
-            var actionDelegate = Delegate.CreateDelegate(actionType, this, genericMethod);
-            var subscribeMethod = typeof(ObservableExtensions)
-                .GetMethods(BindingFlags.Public | BindingFlags.Static)
-                .First(m => m.Name == nameof(ObservableExtensions.Subscribe) && m.GetParameters().Length == 2)
-                .MakeGenericMethod(valueType);
-
-            if (subscribeMethod.Invoke(null, [reactiveProp, actionDelegate]) is IDisposable disposable)
+            var registerGenericMethodInfo = registerMethodInfo.MakeGenericMethod(broker.ValueType);
+            if (registerGenericMethodInfo.Invoke(this, [broker.PropertyInstance, broker.PropertyName]) is IDisposable disposable)
             {
                 this._disposables.Add(disposable);
             }
 
-            list.Add(prop);
+            list.Add(broker);
         }
 
         return [.. list];
     }
 
-    private void HandleReactivePropertyChanged<T>(T _)
-    {
-        if (this._ignoreChangesFromLoad || this._isInitialized == false || this.AutoSave == false)
-        {
-            return;
-        }
-
-        this._save.OnNext(SaveReason.PropertyChanged);
-    }
+    private IDisposable RegisterPropertyChanged<T>(IReactiveProperty<T> property, string propertyName)
+        => property
+            .Where(_ => this._ignoreChangesFromLoad == false)
+            .Subscribe(newValue =>
+            {
+                Debug.WriteLine($"🔔PropertyChanged ({propertyName}): {newValue}");
+                if (this.AutoSave) this._save.OnNext(SaveReason.PropertyChanged);
+            });
 
     /// <summary>
     /// Determines whether the received file system change event is caused by an external source or by the program itself.
@@ -170,49 +171,42 @@ public abstract class ReactiveSettingsBase : IDisposable
         var lastSaveMs = Interlocked.Read(ref this._lastSaveTimestamp);
         var eventMs = args.Timestamp.ToUnixTimeMilliseconds();
         var deltaMs = eventMs - lastSaveMs;
-        var result = deltaMs > this.SelfChangeIgnoreSpan.TotalMilliseconds;
+        var result = deltaMs > this.SelfChangeDuration.TotalMilliseconds;
 
-        Debug.WriteLine($"📄FileSystemWatcher.Changed: {args.Value.EventArgs.FullPath} \n └{(result ? "✅Pass" : "❌Ignore")} (Timestamp={args.Timestamp:HH:mm:ss.ffff}, LastSave={DateTimeOffset.FromUnixTimeMilliseconds(lastSaveMs):HH:mm:ss.ffff}, Δ={deltaMs}ms)");
+        Debug.WriteLine($"👀FileSystemWatcher.Changed: {args.Value.EventArgs.FullPath} \n └{(result ? "✅Pass" : "❌Ignore")} (Timestamp={args.Timestamp:HH:mm:ss.fff}, LastSave={DateTimeOffset.FromUnixTimeMilliseconds(lastSaveMs):HH:mm:ss.fff}, Δ={TimeSpan.FromMilliseconds(deltaMs):g})");
 
         return result;
     }
 
-    private void LoadSettings(LoadReason reason)
+    private async Task LoadSettingsAsync(LoadReason reason)
     {
         try
         {
             if (this._settingsFilePath.Exists() == false) return;
 
-            var json = this._settingsFilePath.ReadAllText();
-            var outerDict = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json, _jsonSerializerOptions);
-            if (outerDict == null || outerDict.TryGetValue(this._settingsSectionName, out var sectionElement) == false) return;
+            var json = await this._settingsFilePath.ReadAllTextAsync();
+            var outerDictionary = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json, _jsonSerializerOptions);
+            if (outerDictionary == null || outerDictionary.TryGetValue(this._settingsSectionName, out var sectionElement) == false) return;
 
-            var sectionDict = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(sectionElement.GetRawText(), _jsonSerializerOptions);
-            if (sectionDict == null) return;
+            var sectionDictionary = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(sectionElement.GetRawText(), _jsonSerializerOptions);
+            if (sectionDictionary == null) return;
 
-            foreach (var prop in this._reactiveProperties)
+            foreach (var broker in this._propertyBrokers)
             {
-                if (sectionDict.TryGetValue(prop.Name, out var element) == false) continue;
+                if (sectionDictionary.TryGetValue(broker.PropertyName, out var element) == false) continue;
 
-                var valueType = prop.PropertyType.GetGenericArguments()[0];
-                var convertedValue = JsonSerializer.Deserialize(element.GetRawText(), valueType, _jsonSerializerOptions);
-                var reactiveProp = prop.GetValue(this);
-                if (reactiveProp == null) continue;
-
-                var valueProperty = reactiveProp.GetType().GetProperty("Value");
-                if (valueProperty == null) continue;
-
+                var convertedValue = JsonSerializer.Deserialize(element.GetRawText(), broker.ValueType, _jsonSerializerOptions);
                 using (this._ignoreChangesFromLoad.Enable())
                 {
-                    valueProperty.SetValue(reactiveProp, convertedValue);
+                    broker.CurrentValue = convertedValue;
                 }
             }
 
-            Debug.WriteLine($"📄{nameof(this.LoadSettings)}({reason}): {this._settingsFilePath.AsDestructive().FullName} \n └✅Success");
+            Debug.WriteLine($"📄{nameof(this.LoadSettingsAsync)} ({reason}): {this._settingsFilePath.AsDestructive().FullName} \n └✅Success");
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"📄{nameof(this.LoadSettings)}({reason}): {this._settingsFilePath.AsDestructive().FullName} \n └❌Error: {ex}");
+            Debug.WriteLine($"📄{nameof(this.LoadSettingsAsync)} ({reason}): {this._settingsFilePath.AsDestructive().FullName} \n └❌Error: {ex}");
         }
     }
 
@@ -220,40 +214,26 @@ public abstract class ReactiveSettingsBase : IDisposable
     /// Overwrites the configuration file's section specified by <see cref="_settingsSectionName"/>
     /// with the current <see cref="IReactiveProperty{T}"/> values, preserving the other sections.
     /// </summary>
-    private void SaveSettings(SaveReason reason)
+    private async Task SaveSettingsAsync(SaveReason reason)
     {
         try
         {
-            var sectionDictionary = new Dictionary<string, object?>();
-
-            foreach (var prop in this._reactiveProperties)
-            {
-                var reactiveProp = prop.GetValue(this);
-                if (reactiveProp == null) continue;
-
-                var valueProperty = reactiveProp.GetType().GetProperty("Value");
-                if (valueProperty == null) continue;
-
-                var currentValue = valueProperty.GetValue(reactiveProp);
-                sectionDictionary[prop.Name] = currentValue;
-            }
-
+            var sectionDictionary = this._propertyBrokers.ToDictionary(x => x.PropertyName, x => x.CurrentValue);
             var outerDictionary = this._settingsFilePath.Exists()
-                ? JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(this._settingsFilePath.ReadAllText(), _jsonSerializerOptions)
-                    ?.ToDictionary(kvp => kvp.Key, kvp => (object)kvp.Value) ?? []
+                ? JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(await this._settingsFilePath.ReadAllTextAsync(), _jsonSerializerOptions) ?? []
                 : [];
-            outerDictionary[this._settingsSectionName] = sectionDictionary;
+            outerDictionary[this._settingsSectionName] = JsonSerializer.SerializeToElement(sectionDictionary, _jsonSerializerOptions);
 
             var newJson = JsonSerializer.Serialize(outerDictionary, _jsonSerializerOptions);
 
             Interlocked.Exchange(ref this._lastSaveTimestamp, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
-            this._settingsFilePath.AsDestructive().Write(newJson);
+            await this._settingsFilePath.AsDestructive().WriteAsync(newJson);
 
-            Debug.WriteLine($"📄{nameof(this.SaveSettings)}({reason}): {this._settingsFilePath.AsDestructive().FullName} \n └✅Success");
+            Debug.WriteLine($"💾{nameof(this.SaveSettingsAsync)} ({reason}): {this._settingsFilePath.AsDestructive().FullName} \n └✅Success");
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"📄{nameof(this.SaveSettings)}({reason}): {this._settingsFilePath.AsDestructive().FullName} \n └❌Error: {ex}");
+            Debug.WriteLine($"💾{nameof(this.SaveSettingsAsync)} ({reason}): {this._settingsFilePath.AsDestructive().FullName} \n └❌Error: {ex}");
         }
     }
 
