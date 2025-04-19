@@ -22,7 +22,7 @@ namespace MetroTrilithon.Serialization;
 /// Supports reading and writing settings values exposed by the derived type as <see cref="IReactiveProperty{T}"/>  
 /// in JSON format.  
 /// </summary>
-public abstract partial class ReactiveSettingsBase : IDisposable
+public abstract class ReactiveSettingsBase : IDisposable
 {
     private enum LoadReason
     {
@@ -35,6 +35,16 @@ public abstract partial class ReactiveSettingsBase : IDisposable
     {
         PropertyChanged,
         Explicit,
+    }
+
+    private class ReactivePropertyBroker(object propertyOwner, PropertyInfo propertyInfo)
+    {
+        public string PropertyName { get; } = propertyInfo.Name;
+
+        public Type ValueType { get; } = propertyInfo.PropertyType.GetGenericArguments()[0];
+
+        public IReactiveProperty Property { get; } = propertyInfo.GetValue(propertyOwner) as IReactiveProperty
+            ?? throw new InvalidOperationException($"Property '{propertyInfo.Name}' not found");
     }
 
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
@@ -132,7 +142,7 @@ public abstract partial class ReactiveSettingsBase : IDisposable
     private ReactivePropertyBroker[] SubscribeToReactiveProperties()
     {
         var list = new List<ReactivePropertyBroker>();
-        var registerMethodInfo = typeof(ReactiveSettingsBase).GetMethod(nameof(this.RegisterPropertyChanged), BindingFlags.Instance | BindingFlags.NonPublic)
+        var registerMethodInfo = this.GetType().GetMethod(nameof(this.RegisterPropertyChanged), BindingFlags.Instance | BindingFlags.NonPublic)
             ?? throw new InvalidOperationException($"Method not found: {nameof(this.RegisterPropertyChanged)}");
 
         foreach (var broker in this.GetType()
@@ -143,7 +153,7 @@ public abstract partial class ReactiveSettingsBase : IDisposable
                      .Select(x => new ReactivePropertyBroker(this, x)))
         {
             var registerGenericMethodInfo = registerMethodInfo.MakeGenericMethod(broker.ValueType);
-            if (registerGenericMethodInfo.Invoke(this, [broker.PropertyInstance, broker.PropertyName]) is IDisposable disposable)
+            if (registerGenericMethodInfo.Invoke(this, [broker.Property, broker.PropertyName]) is IDisposable disposable)
             {
                 this._disposables.Add(disposable);
             }
@@ -198,7 +208,7 @@ public abstract partial class ReactiveSettingsBase : IDisposable
                 var convertedValue = JsonSerializer.Deserialize(element.GetRawText(), broker.ValueType, _jsonSerializerOptions);
                 using (this._ignoreChangesFromLoad.Enable())
                 {
-                    broker.CurrentValue = convertedValue;
+                    broker.Property.Value = convertedValue;
                 }
             }
 
@@ -218,7 +228,7 @@ public abstract partial class ReactiveSettingsBase : IDisposable
     {
         try
         {
-            var sectionDictionary = this._propertyBrokers.ToDictionary(x => x.PropertyName, x => x.CurrentValue);
+            var sectionDictionary = this._propertyBrokers.ToDictionary(x => x.PropertyName, x => x.Property.Value);
             var outerDictionary = this._settingsFilePath.Exists()
                 ? JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(await this._settingsFilePath.ReadAllTextAsync(), _jsonSerializerOptions) ?? []
                 : [];
