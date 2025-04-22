@@ -28,7 +28,7 @@ public static class UIExtensions
             dependencyObject = LogicalTreeHelper.GetParent(dependencyObject);
         }
 
-        return default;
+        return null;
     }
 
     public static T? FindVisualAncestor<T>(this DependencyObject? dependencyObject)
@@ -40,6 +40,6 @@ public static class UIExtensions
             dependencyObject = VisualTreeHelper.GetParent(dependencyObject);
         }
 
-        return default;
+        return null;
     }
 }

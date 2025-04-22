@@ -21,19 +21,14 @@ namespace MetroTrilithon.UI.Converters;
 /// </example>
 public class DarkerColorConverter : IValueConverter
 {
-    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-    {
-        switch (value)
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => value switch
         {
-            case SolidColorBrush brush:
-                return ToDarker(brush);
+            SolidColorBrush brush => ToDarker(brush),
+            _ => Binding.DoNothing,
+        };
 
-            default:
-                return Binding.DoNothing;
-        }
-    }
-
-    object IValueConverter.ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    object IValueConverter.ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotSupportedException();
 
     private static SolidColorBrush ToDarker(SolidColorBrush brush)

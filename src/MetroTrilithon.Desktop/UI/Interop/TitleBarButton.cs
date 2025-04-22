@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Reactive.Disposables;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls.Primitives;
@@ -12,7 +11,7 @@ public class TitleBarButton : ButtonBase, IWindowProcedure
 {
     private static readonly DependencyPropertyKey IsMouseOverPropertyKey;
     private static readonly DependencyPropertyKey IsPressedPropertyKey;
-    private static readonly List<TitleBarButton> _buttons = new();
+    private static readonly List<TitleBarButton> _buttons = [];
 
     static TitleBarButton()
     {

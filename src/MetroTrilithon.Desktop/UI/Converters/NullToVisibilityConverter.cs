@@ -7,11 +7,11 @@ namespace MetroTrilithon.UI.Converters;
 
 public class NullToVisibilityConverter : IValueConverter
 {
-    public object Convert(object? value, Type targetType, object parameter, CultureInfo culture)
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
         => value == null
             ? VisibilityBoxes.CollapsedBox
             : VisibilityBoxes.VisibleBox;
 
-    object IValueConverter.ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    object IValueConverter.ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotSupportedException();
 }
