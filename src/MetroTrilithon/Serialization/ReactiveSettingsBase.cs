@@ -46,6 +46,7 @@ public abstract partial class ReactiveSettingsBase : IDisposable
     private readonly FilePath _settingsFilePath;
     private readonly string _settingsSectionName;
     private readonly IReadOnlyCollection<ReactivePropertyBroker> _propertyBrokers;
+    private readonly ReactiveProperty<bool> _isInitialized = new();
     private readonly Subject<LoadReason> _load = new();
     private readonly Subject<SaveReason> _save = new();
     private readonly CompositeDisposable _disposables = [];
@@ -72,6 +73,9 @@ public abstract partial class ReactiveSettingsBase : IDisposable
     /// </summary>
     protected virtual TimeSpan SelfChangeDuration
         => TimeSpan.FromMilliseconds(500);
+
+    public IReadOnlyReactiveProperty<bool> IsInitialized
+        => this._isInitialized;
 
     protected ReactiveSettingsBase(FilePath settingsFilePath)
         : this(settingsFilePath, null, null)
@@ -166,6 +170,11 @@ public abstract partial class ReactiveSettingsBase : IDisposable
                 {
                     broker.Property.Value = convertedValue;
                 }
+            }
+
+            if (reason == LoadReason.Initialize)
+            {
+                this._isInitialized.Value = true;
             }
 
             Debug.WriteLine($"📄{nameof(this.LoadSettingsAsync)} ({reason}): {this._settingsFilePath.AsDestructive().FullName} \n └✅Success");
