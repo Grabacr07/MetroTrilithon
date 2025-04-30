@@ -7,13 +7,22 @@ namespace MetroTrilithon.UI;
 
 public static class UIDispatcher
 {
-    public static Dispatcher? Instance { get; set; }
+    private static readonly Lazy<Dispatcher> _instance = new(() => Dispatcher.CurrentDispatcher);
+
+    public static Dispatcher Instance
 #if DEBUG
-        = DesignFeatures.IsInDesignMode ? Dispatcher.CurrentDispatcher : null;
+        => DesignFeatures.IsInDesignMode ? Dispatcher.CurrentDispatcher : _instance.Value;
+#else
+        => _instance.Value;
 #endif
 
+    public static void Initialize()
+    {
+        _ = _instance.Value;
+    }
+
     public static DispatcherAwaiter Switch()
-        => new(Instance ?? throw new NullReferenceException($"Set the {nameof(UIDispatcher)}.{nameof(Instance)} property to the dispatcher object when the application starts."));
+        => new(_instance.Value);
 
     public readonly struct DispatcherAwaiter(Dispatcher dispatcher) : INotifyCompletion
     {
