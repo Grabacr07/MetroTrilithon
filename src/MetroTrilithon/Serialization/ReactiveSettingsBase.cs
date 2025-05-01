@@ -7,6 +7,7 @@ using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading.Tasks;
 using MetroTrilithon.Linq;
@@ -41,6 +42,7 @@ public abstract partial class ReactiveSettingsBase : IDisposable
     {
         WriteIndented = true,
         PropertyNameCaseInsensitive = true,
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
     };
 
     private readonly FilePath _settingsFilePath;
