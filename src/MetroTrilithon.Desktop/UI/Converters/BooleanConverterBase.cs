@@ -7,20 +7,15 @@ using System.Windows.Data;
 
 namespace MetroTrilithon.UI.Converters;
 
-public abstract class BooleanConverterBase<T> : IValueConverter
+public abstract class BooleanConverterBase<T>(T trueValue, T falseValue) : IValueConverter
 {
-    public T True { get; set; }
-    public T False { get; set; }
+    public T True { get; set; } = trueValue;
 
-    protected BooleanConverterBase(T trueValue, T falseValue)
-    {
-        this.True = trueValue;
-        this.False = falseValue;
-    }
+    public T False { get; set; } = falseValue;
 
-    public virtual object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    public virtual object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
         => value is true ? this.True : this.False;
 
-    public virtual object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    public virtual object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => value is T v && EqualityComparer<T>.Default.Equals(v, this.True);
 }

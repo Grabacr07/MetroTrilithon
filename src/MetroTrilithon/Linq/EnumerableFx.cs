@@ -57,7 +57,7 @@ public static class EnumerableFx
     {
         // めっっっちゃ適当な実装なので後でなんとかしたい
 
-        if (source is not ICollection<T> { IsReadOnly: false } list) list = source.ToList();
+        if (source is not List<T> list) list = [.. source];
 
         while (list.Count < count) list.Add(selector(list.Count));
 
@@ -71,7 +71,7 @@ public static class EnumerableFx
         => string.Join(separator, source is IEnumerable<string> strings ? strings : source.Select(x => $"{x}"));
 
     public static ObservableCollection<T> ToObservableCollection<T>(this IEnumerable<T> source)
-        => new(source);
+        => [.. source];
 
     public static void Dispose(this IEnumerable<IDisposable> disposables)
         => disposables.ForEach(x => x.Dispose());

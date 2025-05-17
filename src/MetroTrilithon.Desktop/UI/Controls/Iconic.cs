@@ -19,7 +19,7 @@ public static class Iconic
             nameof(ContentProperty).GetPropertyName(),
             typeof(string),
             typeof(Iconic),
-            new PropertyMetadata(default(string), HandleContentChanged));
+            new PropertyMetadata(null, HandleContentChanged));
 
     private static void HandleContentChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {

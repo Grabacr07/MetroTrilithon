@@ -7,25 +7,27 @@ namespace MetroTrilithon.UI;
 
 public static class UIDispatcher
 {
-    public static Dispatcher? Instance { get; set; }
+    private static readonly Lazy<Dispatcher> _instance = new(() => Dispatcher.CurrentDispatcher);
+
+    public static Dispatcher Instance
 #if DEBUG
-        = DesignFeatures.IsInDesignMode ? Dispatcher.CurrentDispatcher : default;
+        => DesignFeatures.IsInDesignMode ? Dispatcher.CurrentDispatcher : _instance.Value;
+#else
+        => _instance.Value;
 #endif
 
-    public static DispatcherAwaiter Switch()
-        => new(Instance ?? throw new NullReferenceException("Set the UIDispatcher.Instance property to the Dispatcher object when the application starts."));
-
-    public readonly struct DispatcherAwaiter : INotifyCompletion
+    public static void Initialize()
     {
-        private readonly Dispatcher _dispatcher;
+        _ = _instance.Value;
+    }
 
+    public static DispatcherAwaiter Switch()
+        => new(_instance.Value);
+
+    public readonly struct DispatcherAwaiter(Dispatcher dispatcher) : INotifyCompletion
+    {
         public bool IsCompleted
-            => this._dispatcher.CheckAccess();
-
-        public DispatcherAwaiter(Dispatcher dispatcher)
-        {
-            this._dispatcher = dispatcher;
-        }
+            => dispatcher.CheckAccess();
 
         public void GetResult()
         {
@@ -35,6 +37,6 @@ public static class UIDispatcher
             => this;
 
         public void OnCompleted(Action continuation)
-            => this._dispatcher.BeginInvoke(continuation);
+            => dispatcher.BeginInvoke(continuation);
     }
 }

@@ -9,17 +9,11 @@ using MetroTrilithon.Properties;
 namespace MetroTrilithon.UI.Markup;
 
 [MarkupExtensionReturnType(typeof(BitmapFrame))]
-public class IconExtension : MarkupExtension
+public class IconExtension(string source, int size) : MarkupExtension
 {
-    public string Source { get; set; }
+    public string Source { get; set; } = source;
 
-    public int Size { get; set; }
-
-    public IconExtension(string source, int size)
-    {
-        this.Source = source;
-        this.Size = size;
-    }
+    public int Size { get; set; } = size;
 
     public override object? ProvideValue(IServiceProvider serviceProvider)
     {
