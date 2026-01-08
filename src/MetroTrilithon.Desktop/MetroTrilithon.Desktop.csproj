@@ -19,10 +19,10 @@
 
   <ItemGroup>
     <PackageReference Include="LivetCask" Version="4.0.2" />
-    <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.183">
+    <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.264">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="WPF-UI" Version="4.0.3" />
+    <PackageReference Include="WPF-UI" Version="4.1.0" />
   </ItemGroup>
 
   <ItemGroup>
