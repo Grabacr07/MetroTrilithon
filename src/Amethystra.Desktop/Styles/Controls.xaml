@@ -1,0 +1,13 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+					xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/Amethystra.Desktop;component/UI/Controls/BindableRichTextBox.xaml" />
+        <ResourceDictionary Source="/Amethystra.Desktop;component/UI/Controls/TextPair.xaml" />
+        <ResourceDictionary Source="/Amethystra.Desktop;component/UI/Interop/TitleBar.xaml" />
+        <ResourceDictionary Source="/Amethystra.Desktop;component/UI/Interop/TitleBarButton.xaml" />
+        <ResourceDictionary Source="/Amethystra.Desktop;component/UI/Interop/TitleBarIcon.xaml" />
+
+    </ResourceDictionary.MergedDictionaries>
+
+</ResourceDictionary>

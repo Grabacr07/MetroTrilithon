@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net10.0-windows</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>Amethystra</RootNamespace>
+    <Product>Amethystra</Product>
+    <Authors>@Grabacr07</Authors>
+    <Company>grabacr.net</Company>
+    <Copyright>Copyright © 2023 Manato Kameya</Copyright>
+    <Description>@Grabacr07's personal utility suite.</Description>
+    <RepositoryUrl>https://github.com/Grabacr07/Amethystra</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/Grabacr07/Amethystra</PackageProjectUrl>
+    <PackageLicenseFile>..\..\LICENSE.txt</PackageLicenseFile>
+    <PackageReadmeFile>..\..\README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="LivetCask" Version="4.0.2" />
+    <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.269">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="WPF-UI" Version="4.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Amethystra.CodeAnalysis\Amethystra.CodeAnalysis.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\Amethystra\Amethystra.csproj" />
+  </ItemGroup>
+
+</Project>

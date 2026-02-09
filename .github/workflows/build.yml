@@ -6,24 +6,22 @@ on:
   pull_request:
     branches: [ master ]
 
-
 env:
-  DOTNET_VERSION: 8.0.x
-  BUILD_TARGET: .\src\MetroTrilithon.sln
-
+  DOTNET_VERSION: 10.0.x
+  BUILD_TARGET: .\src\Amethystra.sln
 
 jobs:
   build:
     name: .NET Build
     runs-on: windows-latest
-    
+
     steps:
-    - uses: actions/checkout@v2
-    
-    - name: Use .NET ${{ env.DOTNET_VERSION }}
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
-      
-    - name: Build
-      run: dotnet build ${{ env.BUILD_TARGET }} -c Release
+      - uses: actions/checkout@v4
+
+      - name: Use .NET ${{ env.DOTNET_VERSION }}
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Build
+        run: dotnet build "${{ env.BUILD_TARGET }}" -c Release
