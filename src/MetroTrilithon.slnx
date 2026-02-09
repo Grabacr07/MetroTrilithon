@@ -1,0 +1,21 @@
+<Solution>
+  <Configurations>
+    <BuildType Name="Debug" />
+    <BuildType Name="Release" />
+    <BuildType Name="Release RETRO" />
+  </Configurations>
+  <Folder Name="/.config/">
+    <File Path=".editorconfig" />
+  </Folder>
+  <Folder Name="/.docs/">
+    <File Path="../LICENSE.txt" />
+    <File Path="../README.md" />
+  </Folder>
+  <Project Path="MetroTrilithon.CodeAnalysis/MetroTrilithon.CodeAnalysis.csproj">
+    <BuildType Solution="Release RETRO|*" Project="Release" />
+  </Project>
+  <Project Path="MetroTrilithon.Desktop/MetroTrilithon.Desktop.csproj" />
+  <Project Path="MetroTrilithon/MetroTrilithon.csproj">
+    <BuildType Solution="Release RETRO|*" Project="Release" />
+  </Project>
+</Solution>
