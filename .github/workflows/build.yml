@@ -8,7 +8,7 @@ on:
 
 env:
   DOTNET_VERSION: 10.0.x
-  BUILD_TARGET: .\src\Amethystra.sln
+  BUILD_TARGET: .\src\Amethystra.slnx
 
 jobs:
   build:
