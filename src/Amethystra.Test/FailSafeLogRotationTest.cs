@@ -83,7 +83,7 @@ public sealed class FailSafeLogRotationTest
             FailSafeLog.Info(
                 "Parallel",
                 "Test",
-                new Dictionary<string, object?>
+                new Dictionary<string, object?>()
                 {
                     ["payload"] = payload,
                     ["i"] = i,
@@ -106,8 +106,8 @@ public sealed class FailSafeLogRotationTest
         Assert.IsTrue(this._logFilePath.Exists());
 
         var lines = this._logFilePath.ReadAllLines();
-        Assert.IsTrue(lines.Any(x => x.Contains("\"Message\":\"Begin: Op\"", StringComparison.Ordinal)));
-        Assert.IsTrue(lines.Any(x => x.Contains("\"Message\":\"End: Op\"", StringComparison.Ordinal)));
+        Assert.IsTrue(lines.Any(static x => x.Contains("\"Message\":\"Begin: Op\"", StringComparison.Ordinal)));
+        Assert.IsTrue(lines.Any(static x => x.Contains("\"Message\":\"End: Op\"", StringComparison.Ordinal)));
     }
 
     private static void WriteManyEntries(int entryCount, int payloadSize)
@@ -119,7 +119,7 @@ public sealed class FailSafeLogRotationTest
             FailSafeLog.Info(
                 "Test",
                 "Rotate",
-                new Dictionary<string, object?>
+                new Dictionary<string, object?>()
                 {
                     ["payload"] = payload,
                     ["i"] = i,

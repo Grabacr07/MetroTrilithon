@@ -68,15 +68,15 @@ public static class EnumerableEx
         }
 
         public IEnumerable<T> Random()
-            => source.OrderBy(_ => Guid.NewGuid());
+            => source.OrderBy(static _ => Guid.NewGuid());
 
         public string JoinString(string separator)
-            => string.Join(separator, source is IEnumerable<string> strings ? strings : source.Select(x => $"{x}"));
+            => string.Join(separator, source as IEnumerable<string> ?? source.Select(static x => $"{x}"));
 
         public ObservableCollection<T> ToObservableCollection()
             => [.. source];
     }
 
     public static void Dispose(this IEnumerable<IDisposable> disposables)
-        => disposables.ForEach(x => x.Dispose());
+        => disposables.ForEach(static x => x.Dispose());
 }

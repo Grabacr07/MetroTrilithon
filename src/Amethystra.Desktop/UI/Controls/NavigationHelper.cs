@@ -13,7 +13,7 @@ public class NavigationHelper
 {
     #region PropagationContext attached property
 
-    private static readonly HashSet<NavigationView> _knownItems = new();
+    private static readonly HashSet<NavigationView> _knownItems = [];
 
     public static readonly DependencyProperty PropagationContextProperty
         = DependencyProperty.RegisterAttached(

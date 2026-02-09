@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Reflection;
@@ -45,7 +44,7 @@ partial class ReactiveSettingsBase
             return instance
                 .GetType()
                 .GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                .Where(prop =>
+                .Where(static prop =>
                     prop.PropertyType.IsGenericType &&
                     prop.PropertyType.GetGenericTypeDefinition() == typeof(IReactiveProperty<>))
                 .Select(x => new ReactivePropertyBroker(instance, x, registerMethodInfo));
@@ -57,7 +56,7 @@ partial class ReactiveSettingsBase
             .Where(_ => this._ignoreChangesFromLoad == false)
             .Subscribe(newValue =>
             {
-                Debug.WriteLine($"🔔PropertyChanged ({propertyName}): {newValue}");
+                Log.Debug("🔔PropertyChanged", new() { propertyName, newValue, });
                 if (this.AutoSave) this._save.OnNext(SaveReason.PropertyChanged);
             });
 }

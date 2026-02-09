@@ -256,3 +256,27 @@ public enum WM
     APP = 32768,
     USER = 1024,
 }
+
+public static class WMExtensions
+{
+    extension(WM msg)
+    {
+        public int Int32
+            => (int)msg;
+
+        public uint UInt32
+            => (uint)msg;
+    }
+
+    extension(int msg)
+    {
+        public WM WM
+            => (WM)msg;
+    }
+
+    extension(uint msg)
+    {
+        public WM WM
+            => (WM)msg;
+    }
+}

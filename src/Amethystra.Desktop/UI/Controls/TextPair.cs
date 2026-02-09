@@ -74,7 +74,7 @@ public class TextPair : System.Windows.Controls.Control
             nameof(SubTextSize),
             typeof(double),
             typeof(TextPair),
-            new PropertyMetadata(default(double)));
+            new PropertyMetadata(.0));
 
     public double SubTextSize
     {

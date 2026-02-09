@@ -64,10 +64,10 @@ public class BindableTextBlock : TextBlock
         {
             InlineHolder result;
 
-            var template = this.TextTemplates.FirstOrDefault(dt => dt.DataType is Type type && type == bindable.GetType());
+            var template = this.TextTemplates.FirstOrDefault(dt => dt.DataType is Type type && (type == bindable.GetType()));
             if (template == null)
             {
-                result = new InlineHolder { Inlines = new InlineSimpleCollection(new Inline[] { new Run(bindable.ToString()) }) };
+                result = new InlineHolder { Inlines = new InlineSimpleCollection([new Run(bindable.ToString())]) };
             }
             else
             {
@@ -99,7 +99,7 @@ public class BindableTextBlock : TextBlock
 [ContentProperty(nameof(Inlines))]
 public class InlineHolder : FrameworkElement
 {
-    public InlineSimpleCollection Inlines { get; set; } = new();
+    public InlineSimpleCollection Inlines { get; set; } = [];
 }
 
 public class InlineSimpleCollection : List<Inline>

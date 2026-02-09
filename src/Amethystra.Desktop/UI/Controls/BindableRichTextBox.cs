@@ -59,7 +59,7 @@ public class BindableRichTextBox : RichTextBox
 
     public BindableRichTextBox()
     {
-        this.TextTemplates = new DataTemplateCollection();
+        this.TextTemplates = [];
         this.Loaded += (_, _) => this.Update();
     }
 
@@ -70,12 +70,12 @@ public class BindableRichTextBox : RichTextBox
             {
                 BlockHolder result;
 
-                var template = this.TextTemplates.FirstOrDefault(dt => dt.DataType is Type type && type == obj.GetType());
+                var template = this.TextTemplates.FirstOrDefault(dt => dt.DataType is Type type && (type == obj.GetType()));
                 if (template == null)
                 {
                     var paragraph = new Paragraph();
                     paragraph.Inlines.Add(new Run(obj.ToString()));
-                    result = new BlockHolder { Blocks = new BlockSimpleCollection(new[] { paragraph, }) };
+                    result = new BlockHolder { Blocks = new BlockSimpleCollection([paragraph]) };
                 }
                 else
                 {
@@ -97,7 +97,7 @@ public class BindableRichTextBox : RichTextBox
 
         if (this.TextSource == null) return;
 
-        foreach (var block in this.CreateTemplateInstance(this.TextSource).SelectMany(holder => holder.Blocks))
+        foreach (var block in this.CreateTemplateInstance(this.TextSource).SelectMany(static holder => holder.Blocks))
         {
             this.Document.Blocks.Add(block);
         }
@@ -107,7 +107,7 @@ public class BindableRichTextBox : RichTextBox
 [ContentProperty(nameof(Blocks))]
 public class BlockHolder : FrameworkElement
 {
-    public BlockSimpleCollection Blocks { get; set; } = new();
+    public BlockSimpleCollection Blocks { get; set; } = [];
 }
 
 public class DataTemplateCollection : List<DataTemplate>
