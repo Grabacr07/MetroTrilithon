@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using System.Windows;
-using Amethystra.Lifetime;
+using Amethystra.Disposables;
 using Amethystra.Utils;
 using Reactive.Bindings;
 using Reactive.Bindings.Extensions;

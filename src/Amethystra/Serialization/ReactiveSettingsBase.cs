@@ -10,7 +10,7 @@ using System.Reactive.Subjects;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Amethystra.Lifetime;
+using Amethystra.Disposables;
 using Amethystra.Linq;
 using Amethystra.Utils;
 using Mio;

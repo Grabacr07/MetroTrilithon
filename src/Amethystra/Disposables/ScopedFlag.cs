@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
 
-namespace Amethystra.Lifetime;
+namespace Amethystra.Disposables;
 
 /// <summary>
 /// Represents a boolean flag that is set to true for the lifetime of an <see cref="IDisposable"/>,

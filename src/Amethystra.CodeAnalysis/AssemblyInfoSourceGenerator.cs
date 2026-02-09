@@ -171,6 +171,6 @@ public sealed class AssemblyInfoSourceGenerator : IIncrementalGenerator
         }
 
         private static string ToLiteral(string value)
-            => SymbolDisplay.FormatLiteral(value ?? "", true);
+            => SymbolDisplay.FormatLiteral(value, true);
     }
 }

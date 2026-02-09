@@ -6,7 +6,7 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
 
-namespace Amethystra.Lifetime;
+namespace Amethystra.Disposables;
 
 public interface IDisposeGate
 {
