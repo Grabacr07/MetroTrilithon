@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Reactive.Disposables;
 using System.Threading.Tasks;
 
 namespace Amethystra.Disposables;
@@ -43,7 +42,7 @@ public sealed class DisposeGateSlim<T> : IDisposeGate
 
 public sealed class DisposeGate<T> : IDisposeGate, ICollection<IDisposable>
 {
-    private readonly CompositeDisposable _subscriptions = [];
+    private readonly List<IDisposable> _disposables = [];
     private readonly DisposeGateSlim<T> _gate = new();
 
     public bool IsDisposed
@@ -56,20 +55,34 @@ public sealed class DisposeGate<T> : IDisposeGate, ICollection<IDisposable>
     {
         if (this._gate.TryDispose())
         {
-            this._subscriptions.Dispose();
+            var snapshot = this._disposables.ToArray();
+            this._disposables.Clear();
+
+            for (var i = snapshot.Length - 1; i >= 0; i--)
+            {
+                snapshot[i].Dispose();
+            }
+
             return true;
         }
 
         return false;
     }
 
-    private CompositeDisposable EnsureAccessSubscriptions()
+    public TItem Add<TItem>(TItem item)
+        where TItem : IDisposable
     {
-        this.ThrowIfDisposed();
-        return this._subscriptions;
+        this.EnsureAccessSubscriptions().Add(item);
+        return item;
     }
 
-    public void Add(IDisposable item)
+    private ICollection<IDisposable> EnsureAccessSubscriptions()
+    {
+        this.ThrowIfDisposed();
+        return this._disposables;
+    }
+
+    void ICollection<IDisposable>.Add(IDisposable item)
         => this.EnsureAccessSubscriptions().Add(item);
 
     int ICollection<IDisposable>.Count
