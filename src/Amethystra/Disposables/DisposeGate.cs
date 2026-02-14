@@ -72,40 +72,40 @@ public sealed class DisposeGate<T> : IDisposeGate, ICollection<IDisposable>
     public TItem Add<TItem>(TItem item)
         where TItem : IDisposable
     {
-        this.EnsureAccessSubscriptions().Add(item);
+        this.EnsureAccessDisposables().Add(item);
         return item;
     }
 
-    private ICollection<IDisposable> EnsureAccessSubscriptions()
+    private ICollection<IDisposable> EnsureAccessDisposables()
     {
         this.ThrowIfDisposed();
         return this._disposables;
     }
 
     void ICollection<IDisposable>.Add(IDisposable item)
-        => this.EnsureAccessSubscriptions().Add(item);
+        => this.EnsureAccessDisposables().Add(item);
 
     int ICollection<IDisposable>.Count
-        => this.EnsureAccessSubscriptions().Count;
+        => this.EnsureAccessDisposables().Count;
 
     bool ICollection<IDisposable>.IsReadOnly
-        => this.EnsureAccessSubscriptions().IsReadOnly;
+        => this.EnsureAccessDisposables().IsReadOnly;
 
     void ICollection<IDisposable>.Clear()
-        => this.EnsureAccessSubscriptions().Clear();
+        => this.EnsureAccessDisposables().Clear();
 
     bool ICollection<IDisposable>.Contains(IDisposable item)
-        => this.EnsureAccessSubscriptions().Contains(item);
+        => this.EnsureAccessDisposables().Contains(item);
 
     void ICollection<IDisposable>.CopyTo(IDisposable[] array, int arrayIndex)
-        => this.EnsureAccessSubscriptions().CopyTo(array, arrayIndex);
+        => this.EnsureAccessDisposables().CopyTo(array, arrayIndex);
 
     bool ICollection<IDisposable>.Remove(IDisposable item)
-        => this.EnsureAccessSubscriptions().Remove(item);
+        => this.EnsureAccessDisposables().Remove(item);
 
     IEnumerator<IDisposable> IEnumerable<IDisposable>.GetEnumerator()
-        => this.EnsureAccessSubscriptions().GetEnumerator();
+        => this.EnsureAccessDisposables().GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator()
-        => this.EnsureAccessSubscriptions().GetEnumerator();
+        => this.EnsureAccessDisposables().GetEnumerator();
 }

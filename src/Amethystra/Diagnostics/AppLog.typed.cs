@@ -10,71 +10,71 @@ namespace Amethystra.Diagnostics;
 
 partial class AppLog
 {
-    public static Logger For<T>()
-        => new(typeof(T).Name);
+    public Logger For<T>()
+        => new(this, typeof(T).Name);
 
-    public static Logger For(Type type)
-        => new(type.Name);
+    public Logger For(Type type)
+        => new(this, type.Name);
 
-    public readonly struct Logger(string typeName)
+    public readonly struct Logger(AppLog log, string typeName)
     {
         [Conditional("DEBUG")]
         public void Debug(
             string message,
             Data? data = null,
             [CallerMemberName] string? caller = null)
-            => WriteFromTypedLogger(LogLevel.Debug, message, null, typeName, caller, data);
+            => log.WriteFromTypedLogger(LogLevel.Debug, message, null, typeName, caller, data);
 
         public void Info(
             string message,
             Data? data = null,
             [CallerMemberName] string? caller = null)
-            => WriteFromTypedLogger(LogLevel.Info, message, null, typeName, caller, data);
+            => log.WriteFromTypedLogger(LogLevel.Info, message, null, typeName, caller, data);
 
         public void Warn(
             string message,
             Data? data = null,
             [CallerMemberName] string? caller = null)
-            => WriteFromTypedLogger(LogLevel.Warn, message, null, typeName, caller, data);
+            => log.WriteFromTypedLogger(LogLevel.Warn, message, null, typeName, caller, data);
 
         public void Warn(
             Exception exception,
             string message,
             Data? data = null,
             [CallerMemberName] string? caller = null)
-            => WriteFromTypedLogger(LogLevel.Warn, message, exception, typeName, caller, data);
+            => log.WriteFromTypedLogger(LogLevel.Warn, message, exception, typeName, caller, data);
 
         public void Error(
             Exception exception,
             string message,
             Data? data = null,
             [CallerMemberName] string? caller = null)
-            => WriteFromTypedLogger(LogLevel.Error, message, exception, typeName, caller, data);
+            => log.WriteFromTypedLogger(LogLevel.Error, message, exception, typeName, caller, data);
 
         public void Error(
             string message,
             Data? data = null,
             [CallerMemberName] string? caller = null)
-            => WriteFromTypedLogger(LogLevel.Error, message, null, typeName, caller, data);
+            => log.WriteFromTypedLogger(LogLevel.Error, message, null, typeName, caller, data);
 
         public void Fatal(
             Exception exception,
             string message,
             Data? data = null,
             [CallerMemberName] string? caller = null)
-            => WriteFromTypedLogger(LogLevel.Fatal, message, exception, typeName, caller, data);
+            => log.WriteFromTypedLogger(LogLevel.Fatal, message, exception, typeName, caller, data);
 
         public void Fatal(
             string message,
             Data? data = null,
             [CallerMemberName] string? caller = null)
-            => WriteFromTypedLogger(LogLevel.Fatal, message, null, typeName, caller, data);
+            => log.WriteFromTypedLogger(LogLevel.Fatal, message, null, typeName, caller, data);
 
         public IDisposable BeginOperation(
             string operationName,
             Data? data = null,
             [CallerMemberName] string? caller = null)
-            => new OperationScope(typeName, operationName, data, caller);
+            => new OperationScope(log, typeName, operationName, data, caller);
     }
 
     public sealed class Data : IEnumerable<(string key, object? value)>
@@ -96,5 +96,4 @@ partial class AppLog
         IEnumerator IEnumerable.GetEnumerator()
             => this._items.GetEnumerator();
     }
-
 }

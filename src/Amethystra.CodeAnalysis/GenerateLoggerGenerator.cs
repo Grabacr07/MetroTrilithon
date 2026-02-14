@@ -151,8 +151,8 @@ public sealed class GenerateLoggerGenerator : IIncrementalGenerator
 
     private static string GetLoggerFactoryExpression(INamedTypeSymbol typeSymbol, string fullyQualifiedType)
         => typeSymbol.IsStatic
-            ? $"global::Amethystra.Diagnostics.AppLog.For(typeof({fullyQualifiedType}))"
-            : $"global::Amethystra.Diagnostics.AppLog.For<{fullyQualifiedType}>()";
+            ? $"global::Amethystra.Diagnostics.AppLog.Default.For(typeof({fullyQualifiedType}))"
+            : $"global::Amethystra.Diagnostics.AppLog.Default.For<{fullyQualifiedType}>()";
 
     private static IEnumerable<string> OpenContainingTypes(INamedTypeSymbol typeSymbol)
     {

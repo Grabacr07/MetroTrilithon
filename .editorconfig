@@ -1,8 +1,35 @@
-﻿root = true
+﻿# EditorConfig is awesome: http://EditorConfig.org
 
-[*.{cs,xaml}]
+root = true
+
+[*]
+charset = utf-8-bom
+insert_final_newline = true
+trim_trailing_whitespace = true
 indent_style = space
 indent_size = 4
-end_of_line = crlf
-insert_final_newline = true
-charset = utf-8-bom
+
+[*.sln]
+indent_style = tab
+
+[*.json]
+indent_size = 2
+
+[*.{xml,targets,props}]
+indent_size = 2
+
+[*.*proj]
+indent_size = 2
+insert_final_newline = false
+
+[*.config]
+indent_size = 2
+
+[*.manifest]
+indent_size = 2
+
+[*.txt]
+insert_final_newline = false
+
+[*.cs]
+dotnet_diagnostic.IDE0048.severity = none

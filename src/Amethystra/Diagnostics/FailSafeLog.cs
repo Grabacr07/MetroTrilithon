@@ -18,17 +18,15 @@ public static partial class FailSafeLog
     private const long _maxLogBytes = 10L * 1024L * 1024L;
     private const int _maxGenerations = 5;
 
-    private static FilePath _logFilePath = CreatePath(ThisAssembly.Info);
-    private static IAssemblyInfo _assemblyInfo = ThisAssembly.Info;
-
+    private static readonly Lock _gate = new();
+    private static readonly Encoding _utf8NoBom = new UTF8Encoding(false);
     private static readonly JsonSerializerOptions _jsonOptions = new()
     {
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         WriteIndented = false,
     };
-
-    private static readonly Lock _gate = new();
-    private static readonly Encoding _utf8NoBom = new UTF8Encoding(false);
+    private static FilePath _logFilePath = CreatePath(ThisAssembly.Info);
+    private static IAssemblyInfo _assemblyInfo = ThisAssembly.Info;
 
     private static FilePath LogFilePath
         => _overrideLogFilePath ?? _logFilePath;
@@ -68,10 +66,7 @@ public static partial class FailSafeLog
             .ChildFile($"{Assembly.GetEntryAssembly()?.GetName().Name}.{nameof(FailSafeLog)}.json");
 
     private static void Write(LogLevel level, string message, string? category, IReadOnlyDictionary<string, object?>? data, Exception? exception)
-    {
-        var entry = FailSafeLogEntry.Create(level, message, category, data, exception);
-        AppendLine(entry);
-    }
+        => AppendLine(FailSafeLogEntry.Create(level, message, category, data, exception));
 
     private static void AppendLine(FailSafeLogEntry entry)
     {
@@ -172,7 +167,7 @@ public static partial class FailSafeLog
             var end = Stopwatch.GetTimestamp();
             var elapsedMs = (end - this._startTimestamp) * 1000.0 / Stopwatch.Frequency;
             var extra = this._data is null
-                ? new Dictionary<string, object?>()
+                ? []
                 : new Dictionary<string, object?>(this._data);
 
             extra["elapsedMs"] = elapsedMs;
@@ -181,16 +176,7 @@ public static partial class FailSafeLog
         }
     }
 
-    private enum LogLevel
-    {
-        Info,
-        Warn,
-        Error,
-        Fatal,
-    }
-
     private sealed record FailSafeLogEntry(
-        // ReSharper disable NotAccessedPositionalProperty.Local
         string Timestamp,
         LogLevel Level,
         int ProcessId,
@@ -199,9 +185,7 @@ public static partial class FailSafeLog
         string? Category,
         string Message,
         Dictionary<string, object?>? Data,
-        ExceptionInfo? Exception
-        // ReSharper restore NotAccessedPositionalProperty.Local
-    )
+        ExceptionInfo? Exception)
     {
         public static FailSafeLogEntry Create(
             LogLevel level,
@@ -222,14 +206,11 @@ public static partial class FailSafeLog
     }
 
     private sealed record ExceptionInfo(
-        // ReSharper disable NotAccessedPositionalProperty.Local
         string Type,
         string Message,
         string? StackTrace,
         int? Hresult,
-        ExceptionInfo? Inner
-        // ReSharper restore NotAccessedPositionalProperty.Local
-    )
+        ExceptionInfo? Inner)
     {
         public static ExceptionInfo From(Exception ex)
             => new(

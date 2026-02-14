@@ -7,97 +7,92 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading.Channels;
 using System.Threading.Tasks;
+using Amethystra.Disposables;
 using Amethystra.Properties;
 using Mio;
-using Mio.Destructive;
 
 namespace Amethystra.Diagnostics;
 
-public static partial class AppLog
+public sealed partial class AppLog : IDisposable
 {
-    internal enum LogLevel
+    public sealed record Options(
+        FilePath LogFilePath,
+        long MaxLogBytes = 10L * 1024L * 1024L,
+        int MaxGenerations = 5,
+        int QueueCapacity = 2048,
+        int BestEffortTimeoutMsForDispose = 1000)
     {
-        Debug,
-        Info,
-        Warn,
-        Error,
-        Fatal,
+        public Options(IAssemblyInfo assemblyInfo)
+            : this(CreatePath(assemblyInfo))
+        {
+        }
+
+        public static FilePath CreatePath(IAssemblyInfo info)
+            => new DirectoryPath(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData))
+                .ChildDirectory(info.Company)
+                .ChildDirectory(info.Product)
+                .EnsureCreated()
+                .ChildFile($"{Assembly.GetEntryAssembly()?.GetName().Name}.log");
     }
 
-    private const long _maxLogBytes = 10L * 1024L * 1024L;
-    private const int _maxGenerations = 5;
+    private readonly Options _options;
+    private readonly Encoding _utf8NoBom = new UTF8Encoding(false);
+    private readonly JsonSerializerOptions _jsonOptions;
+    private readonly DisposeGateSlim<AppLog> _disposeGate = new();
 
-    private static readonly Lock _gate = new();
-    private static readonly Encoding _utf8NoBom = new UTF8Encoding(false);
-    private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.General)
+    private FilePath LogFilePath
+        => _overrideLogFilePath ?? this._options.LogFilePath;
+
+    private long MaxLogBytes
+        => _overrideMaxLogBytes ?? this._options.MaxLogBytes;
+
+    private int MaxGenerations
+        => _overrideMaxGenerations ?? this._options.MaxGenerations;
+
+    public AppLog(Options options, params IEnumerable<JsonConverter> converters)
     {
-        WriteIndented = false,
-        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-    };
-
-    private static FilePath _defaultLogFilePath = CreatePath(ThisAssembly.Info);
-    private static bool _isInitialized;
-
-    private static FilePath LogFilePath
-        => _overrideLogFilePath ?? _defaultLogFilePath;
-
-    private static long MaxLogBytes
-        => _overrideMaxLogBytes ?? _maxLogBytes;
-
-    private static int MaxGenerations
-        => _overrideMaxGenerations ?? _maxGenerations;
-
-    public static void Initialize(IAssemblyInfo info, Logger logger, params IEnumerable<JsonConverter> converters)
-    {
-        if (Interlocked.Exchange(ref _isInitialized, true)) return;
-
-        _defaultLogFilePath = CreatePath(info);
-        foreach (var converter in converters) _jsonOptions.Converters.Add(converter);
-
-        logger.Info("Logging started", new() { info.Product, info.VersionString, Environment.ProcessId, Environment.OSVersion.VersionString });
-
-        AppDomain.CurrentDomain.UnhandledException += (_, e) =>
+        this._options = options;
+        this._jsonOptions = new JsonSerializerOptions(JsonSerializerDefaults.General)
         {
-            if (e.ExceptionObject is Exception ex)
-            {
-                logger.Fatal(ex, "UnhandledException", caller: nameof(AppDomain.UnhandledException));
-            }
-            else
-            {
-                logger.Fatal("UnhandledException (non-Exception)", new() { e.ExceptionObject }, nameof(AppDomain.UnhandledException));
-            }
+            WriteIndented = false,
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         };
-        TaskScheduler.UnobservedTaskException += (_, e) =>
+
+        foreach (var c in converters) this._jsonOptions.Converters.Add(c);
+
+        this._queue = Channel.CreateBounded<LogEntry>(new BoundedChannelOptions(options.QueueCapacity)
         {
-            logger.Fatal(e.Exception, "UnobservedTaskException", caller: nameof(TaskScheduler.UnobservedTaskException));
-            e.SetObserved();
-        };
+            SingleReader = true,
+            SingleWriter = false,
+            FullMode = BoundedChannelFullMode.DropWrite,
+            AllowSynchronousContinuations = true,
+        });
+        this._pumpCancellationTokenSource = new CancellationTokenSource();
+        this._pumpTask = Task.Factory.StartNew(
+                () => this.PumpAsync(this._pumpCancellationTokenSource.Token), this._pumpCancellationTokenSource.Token,
+                TaskCreationOptions.LongRunning,
+                TaskScheduler.Default)
+            .Unwrap();
     }
 
-    private static FilePath CreatePath(IAssemblyInfo info)
-        => new DirectoryPath(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData))
-            .ChildDirectory(info.Company)
-            .ChildDirectory(info.Product)
-            .EnsureCreated()
-            .ChildFile($"{Assembly.GetEntryAssembly()?.GetName().Name}.{nameof(FailSafeLog)}.json");
-
-    private static void WriteFromTypedLogger(
+    private void WriteFromTypedLogger(
         LogLevel level,
         string message,
         Exception? exception,
         string typeName,
         string? memberName,
         Data? data)
-        => WriteCore(level, message, exception, ComposeSource(typeName, memberName), data);
+        => this.WriteCore(level, message, exception, ComposeSource(typeName, memberName), data);
 
-    private static void WriteFromOperationScope(
+    private void WriteFromOperationScope(
         string source,
         string message,
         Data? data)
-        => WriteCore(LogLevel.Info, message, null, source, data);
+        => this.WriteCore(LogLevel.Info, message, null, source, data);
 
-    private static void WriteCore(
+    private void WriteCore(
         LogLevel level,
         string message,
         Exception? exception,
@@ -106,33 +101,22 @@ public static partial class AppLog
     {
         try
         {
-            Debug.WriteLine(FormatHeader(level, message, source, data));
-            if (exception is not null) Debug.WriteLine(exception.ToString());
+            var timestamp = DateTimeOffset.Now;
+            var dictionary = data?.ToDictionary();
 
             switch (level)
             {
                 case LogLevel.Fatal:
-                    FailSafeLog.Fatal(message, exception, source, data?.ToDictionary());
+                    FailSafeLog.Fatal(message, exception, source, dictionary);
                     break;
                 case LogLevel.Error:
-                    FailSafeLog.Error(message, exception, source, data?.ToDictionary());
+                    FailSafeLog.Error(message, exception, source, dictionary);
                     break;
-                case LogLevel.Debug:
-                    return; // Debug ログはテキストには書かなくていいでしょう…
             }
 
-            lock (_gate)
+            if (this._disposeGate.IsDisposed == false)
             {
-                LogFilePath.Parent.EnsureCreated();
-                TryRotateLogFileIfNeeded();
-
-                using var stream = new FileStream(LogFilePath.AsDestructive().FullName, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
-                using var writer = new StreamWriter(stream, _utf8NoBom);
-                writer.WriteLine(FormatHeader(level, message, source, data));
-                if (exception is not null) writer.WriteLine(exception.ToString());
-
-                writer.Flush();
-                stream.Flush(true);
+                this.Enqueue(new LogEntry(this, timestamp, level, message, source, exception, dictionary));
             }
         }
         catch
@@ -146,102 +130,49 @@ public static partial class AppLog
             ? typeName
             : $"{typeName}.{memberName}";
 
-    private static string FormatHeader(
-        LogLevel level,
-        string message,
-        string source,
-        Data? data)
+    public void Dispose()
     {
-        var ts = DateTimeOffset.Now.ToString("O");
-        var pid = Environment.ProcessId;
-        var tid = Environment.CurrentManagedThreadId;
-        var sb = new StringBuilder();
-        sb.Append(ts);
-        sb.Append(' ');
-        sb.Append('[').Append(level).Append(']');
-        sb.Append(" pid=").Append(pid);
-        sb.Append(" tid=").Append(tid);
-        sb.Append(" src=").Append(source);
-        sb.Append(' ');
-        sb.Append(message);
+        if (this._disposeGate.TryDispose() == false) return;
 
-        if (data is not null && data.Count > 0)
-        {
-            sb.Append(" data=");
-            sb.Append(SerializeData(data.ToDictionary()));
-        }
-
-        return sb.ToString();
-    }
-
-    private static string SerializeData(Dictionary<string, object?> data)
-    {
         try
         {
-            return JsonSerializer.Serialize(data, _jsonOptions);
-        }
-        catch
-        {
-            return "{serialization_failed}";
-        }
-    }
-
-    private static void TryRotateLogFileIfNeeded()
-    {
-        try
-        {
-            if (LogFilePath.Exists() == false)
+            try
             {
-                return;
+                this._queue.Writer.Complete();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"=== UNKNOWN ERROR: {nameof(this.Dispose)} (_queue.Writer.Complete()) ===");
+                Debug.WriteLine(ex);
             }
 
-            var length = LogFilePath.GetSize();
-            if (length <= MaxLogBytes)
+            if (this._pumpTask is not null
+                && this._pumpTask.Wait(TimeSpan.FromMilliseconds(this._options.BestEffortTimeoutMsForDispose)) == false)
             {
-                return;
+                this._pumpCancellationTokenSource?.Cancel();
+
+                try
+                {
+                    this._pumpTask.Wait(TimeSpan.FromMilliseconds(200));
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"=== UNKNOWN ERROR: {nameof(this.Dispose)} (_pumpTask.Wait()) ===");
+                    Debug.WriteLine(ex);
+                }
             }
-
-            RotateGenerations(LogFilePath);
         }
-        catch
+        catch (Exception ex)
         {
-            // ローテーションに失敗してもログ書き込み自体は続行したい
+            Debug.WriteLine($"=== UNKNOWN ERROR: {nameof(this.Dispose)} ===");
+            Debug.WriteLine(ex);
         }
-    }
-
-    private static void RotateGenerations(FilePath currentPath)
-    {
-        var directory = currentPath.Parent;
-
-        var baseName = currentPath.NameWithoutExtension;
-        var extension = currentPath.Extension;
-
-        var oldest = directory.ChildFile($"{baseName}.{MaxGenerations}{extension}");
-        if (oldest.Exists()) oldest.AsDestructive().Delete();
-
-        for (var i = MaxGenerations - 1; i >= 1; i--)
+        finally
         {
-            var src = directory.ChildFile($"{baseName}.{i}{extension}");
-            if (src.Exists() == false)
-            {
-                continue;
-            }
-
-            var dst = directory.ChildFile($"{baseName}.{i + 1}{extension}");
-            if (dst.Exists())
-            {
-                dst.AsDestructive().Delete();
-            }
-
-            src.AsDestructive().MoveTo(dst.AsDestructive());
+            this._pumpCancellationTokenSource?.Dispose();
+            this._pumpCancellationTokenSource = null;
+            this._pumpTask = null;
+            Debug.WriteLine($"{nameof(AppLog)} stopped.");
         }
-
-        var first = directory.ChildFile($"{baseName}.1{extension}");
-        if (first.Exists())
-        {
-            first.AsDestructive().Delete();
-        }
-
-        currentPath.AsDestructive().MoveTo(first.AsDestructive());
     }
 }
