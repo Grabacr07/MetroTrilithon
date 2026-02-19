@@ -24,4 +24,5 @@
   <ItemGroup>
     <ProjectReference Include="..\Amethystra.CodeAnalysis\Amethystra.CodeAnalysis.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
+
 </Project>

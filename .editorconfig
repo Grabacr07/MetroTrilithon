@@ -4,13 +4,19 @@ root = true
 
 [*]
 charset = utf-8-bom
+end_of_line = crlf
 insert_final_newline = true
 trim_trailing_whitespace = true
 indent_style = space
 indent_size = 4
 
-[*.sln]
-indent_style = tab
+[*.slnx]
+indent_size = 2
+resharper_xml_attribute_style = do_not_touch
+
+[*.*proj]
+indent_size = 2
+resharper_xml_attribute_style = do_not_touch
 
 [*.json]
 indent_size = 2
@@ -18,18 +24,11 @@ indent_size = 2
 [*.{xml,targets,props}]
 indent_size = 2
 
-[*.*proj]
-indent_size = 2
-insert_final_newline = false
-
 [*.config]
 indent_size = 2
 
 [*.manifest]
 indent_size = 2
-
-[*.txt]
-insert_final_newline = false
 
 [*.cs]
 dotnet_diagnostic.IDE0048.severity = none
