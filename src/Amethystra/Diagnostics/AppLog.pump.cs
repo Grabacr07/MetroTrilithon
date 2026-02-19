@@ -8,64 +8,125 @@ namespace Amethystra.Diagnostics;
 
 partial class AppLog
 {
-    private readonly Channel<LogEntry> _queue;
-    private Task? _pumpTask;
-    private CancellationTokenSource? _pumpCancellationTokenSource;
-    private long _droppedCount;
-
     private void Enqueue(LogEntry entry)
+        => this._queueing.Enqueue(entry);
+
+    private sealed class Queueing : IDisposable
     {
-        Debug.WriteLine(entry.FormattedText);
-        if (entry.HasException) Debug.WriteLine(entry.ExceptionText);
+        private readonly AppLog _log;
+        private readonly AppLogOptions _options;
+        private readonly Channel<LogEntry> _queue;
+        private readonly CancellationTokenSource _pumpCancellationTokenSource = new();
+        private readonly Task _pumpTask;
+        private long _droppedCount;
 
-        if (this._queue.Writer.TryWrite(entry) == false)
+        public Queueing(AppLog log)
         {
-            Interlocked.Increment(ref this._droppedCount);
-        }
-    }
-
-    private async Task PumpAsync(CancellationToken cancellationToken)
-    {
-        try
-        {
-            this._options.LogFilePath.Parent.EnsureCreated();
-            using var writer = new RotatingLogWriter(this._options);
-
-            await foreach (var entry in this._queue.Reader.ReadAllAsync(cancellationToken).ConfigureAwait(false))
+            this._log = log;
+            this._options = log._options;
+            this._queue = Channel.CreateBounded<LogEntry>(new BoundedChannelOptions(log._options.QueueCapacity)
             {
-                var dropped = Interlocked.Exchange(ref this._droppedCount, 0);
-                if (dropped > 0)
-                {
-                    var ts = DateTimeOffset.Now;
-                    var data = new Dictionary<string, object?> { ["dropped"] = dropped, };
-                    const string message = "Log queue overflow (dropped)";
-                    const string source = $"{nameof(AppLog)}.{nameof(this.PumpAsync)}";
-                    writer.WriteLine(new LogEntry(this, ts, LogLevel.Warn, message, source, null, data).FormattedText);
-                }
+                SingleReader = true,
+                SingleWriter = false,
+                FullMode = BoundedChannelFullMode.DropWrite,
+                AllowSynchronousContinuations = true,
+            });
+            this._pumpTask = Task.Factory.StartNew(
+                    () => this.PumpAsync(this._pumpCancellationTokenSource.Token),
+                    this._pumpCancellationTokenSource.Token,
+                    TaskCreationOptions.LongRunning,
+                    TaskScheduler.Default)
+                .Unwrap();
+        }
 
-                writer.Write(entry);
+        public void Enqueue(LogEntry entry)
+        {
+            Debug.WriteLine(entry.FormattedText);
+            if (entry.HasException)
+            {
+                Debug.WriteLine(entry.ExceptionText);
+            }
+
+            if (this._queue.Writer.TryWrite(entry) == false)
+            {
+                Interlocked.Increment(ref this._droppedCount);
             }
         }
-        catch (OperationCanceledException)
+
+        private async Task PumpAsync(CancellationToken cancellationToken)
         {
-            // タイムアウト保険で cancel されたケース
+            try
+            {
+                this._options.LogFilePath.Parent.EnsureCreated();
+                using var writer = new RotatingLogWriter(this._options);
+
+                await foreach (var entry in this._queue.Reader.ReadAllAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var dropped = Interlocked.Exchange(ref this._droppedCount, 0);
+                    if (dropped > 0)
+                    {
+                        var ts = DateTimeOffset.Now;
+                        var data = this._log.SerializeData(new Dictionary<string, object?> { ["dropped"] = dropped, });
+                        const string message = "Log queue overflow (dropped)";
+                        const string source = $"{nameof(AppLog)}.PumpAsync";
+                        writer.WriteLine(new LogEntry(ts, LogLevel.Warn, message, source, data).FormattedText);
+                    }
+
+                    writer.Write(entry);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // タイムアウト保険で cancel されたケース
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"=== UNKNOWN ERROR: {nameof(this.PumpAsync)} ===");
+                Debug.WriteLine(ex);
+            }
         }
-        catch (Exception ex)
+
+        public void Dispose()
         {
-            Debug.WriteLine($"=== UNKNOWN ERROR: {nameof(this.PumpAsync)} ===");
-            Debug.WriteLine(ex);
+            try
+            {
+                try
+                {
+                    this._queue.Writer.Complete();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex);
+                }
+
+                if (this._pumpTask.Wait(TimeSpan.FromMilliseconds(this._options.BestEffortTimeoutMsForDispose)) == false)
+                {
+                    this._pumpCancellationTokenSource.Cancel();
+
+                    try
+                    {
+                        this._pumpTask.Wait(TimeSpan.FromMilliseconds(200));
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine(ex);
+                    }
+                }
+            }
+            finally
+            {
+                this._pumpCancellationTokenSource.Dispose();
+            }
         }
     }
 
     private sealed record LogEntry(
-        AppLog Log,
         DateTimeOffset Timestamp,
         LogLevel Level,
         string Message,
         string Source,
-        Exception? Exception,
-        // ReSharper disable once MemberHidesStaticFromOuterClass
-        Dictionary<string, object?>? Data)
+        string? SerializedData,
+        Exception? Exception = null)
     {
         public bool HasException
             => string.IsNullOrEmpty(this.ExceptionText) == false;
@@ -93,10 +154,10 @@ partial class AppLog
                 sb.Append(" msg=\"").Append(this.Message).Append('"');
             }
 
-            if (this.Data is not null && this.Data.Count > 0)
+            if (string.IsNullOrWhiteSpace(this.SerializedData) == false)
             {
                 sb.Append(" data=");
-                sb.Append(this.Log.SerializeData(this.Data));
+                sb.Append(this.SerializedData);
             }
 
             return sb.ToString();

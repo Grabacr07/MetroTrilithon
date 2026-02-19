@@ -4,8 +4,6 @@ using System.Diagnostics;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Threading.Channels;
-using System.Threading.Tasks;
 using Amethystra.Disposables;
 
 namespace Amethystra.Diagnostics;
@@ -16,6 +14,7 @@ public sealed partial class AppLog : IDisposable
     private readonly JsonSerializerOptions _jsonOptions;
     private readonly DisposeGateSlim<AppLog> _disposeGate = new();
     private readonly SerializationSummary _serializationSummary = new();
+    private readonly Queueing _queueing;
 
     public AppLog(AppLogOptions options, params IEnumerable<JsonConverter> converters)
     {
@@ -27,20 +26,7 @@ public sealed partial class AppLog : IDisposable
         };
 
         foreach (var c in converters) this._jsonOptions.Converters.Add(c);
-
-        this._queue = Channel.CreateBounded<LogEntry>(new BoundedChannelOptions(options.QueueCapacity)
-        {
-            SingleReader = true,
-            SingleWriter = false,
-            FullMode = BoundedChannelFullMode.DropWrite,
-            AllowSynchronousContinuations = true,
-        });
-        this._pumpCancellationTokenSource = new CancellationTokenSource();
-        this._pumpTask = Task.Factory.StartNew(
-                () => this.PumpAsync(this._pumpCancellationTokenSource.Token), this._pumpCancellationTokenSource.Token,
-                TaskCreationOptions.LongRunning,
-                TaskScheduler.Default)
-            .Unwrap();
+        this._queueing = new Queueing(this);
     }
 
     private void WriteFromTypedLogger(
@@ -69,6 +55,7 @@ public sealed partial class AppLog : IDisposable
         {
             var timestamp = DateTimeOffset.Now;
             var dictionary = data?.ToDictionary();
+            var serialized = dictionary != null ? this.SerializeData(dictionary) : null;
 
             switch (level)
             {
@@ -82,7 +69,7 @@ public sealed partial class AppLog : IDisposable
 
             if (this._disposeGate.IsDisposed == false)
             {
-                this.Enqueue(new LogEntry(this, timestamp, level, message, source, exception, dictionary));
+                this.Enqueue(new LogEntry(timestamp, level, message, source, serialized, exception));
             }
         }
         catch
@@ -96,7 +83,7 @@ public sealed partial class AppLog : IDisposable
             ? typeName
             : $"{typeName}.{memberName}";
 
-    private string SerializeData(Dictionary<string, object?> data)
+    private string SerializeData(Dictionary<string, object?>? data)
     {
         using var measurement = this._serializationSummary.BeginMeasurement();
         try
@@ -118,43 +105,14 @@ public sealed partial class AppLog : IDisposable
         try
         {
             this._serializationSummary.EnqueueSummary(this);
-            try
-            {
-                this._queue.Writer.Complete();
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"=== UNKNOWN ERROR: {nameof(this.Dispose)} (_queue.Writer.Complete()) ===");
-                Debug.WriteLine(ex);
-            }
-
-            if (this._pumpTask is not null
-                && this._pumpTask.Wait(TimeSpan.FromMilliseconds(this._options.BestEffortTimeoutMsForDispose)) == false)
-            {
-                this._pumpCancellationTokenSource?.Cancel();
-
-                try
-                {
-                    this._pumpTask.Wait(TimeSpan.FromMilliseconds(200));
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"=== UNKNOWN ERROR: {nameof(this.Dispose)} (_pumpTask.Wait()) ===");
-                    Debug.WriteLine(ex);
-                }
-            }
+            this._queueing.Dispose();
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"=== UNKNOWN ERROR: {nameof(this.Dispose)} ===");
             Debug.WriteLine(ex);
         }
-        finally
-        {
-            this._pumpCancellationTokenSource?.Dispose();
-            this._pumpCancellationTokenSource = null;
-            this._pumpTask = null;
-            Debug.WriteLine($"{nameof(AppLog)} stopped.");
-        }
+
+        Debug.WriteLine($"{nameof(AppLog)} stopped.");
     }
 }

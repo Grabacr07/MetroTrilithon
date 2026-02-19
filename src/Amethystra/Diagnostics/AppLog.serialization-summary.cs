@@ -10,7 +10,7 @@ partial class AppLog
     private sealed class SerializationSummary
     {
 #if DEBUG
-        private const int _topCount = 10;
+        private const int _topCount = 7;
         private readonly Lock _gate = new();
         private readonly List<TimingEntry> _topEntries = [];
         private long _count;
@@ -37,40 +37,27 @@ partial class AppLog
                 var timestamp = DateTimeOffset.Now;
                 var totalMs = totalTicks * 1000.0 / Stopwatch.Frequency;
                 var averageMs = count > 0 ? totalMs / count : 0.0;
-
-                log.Enqueue(new LogEntry(
-                    log,
-                    timestamp,
-                    LogLevel.Debug,
-                    "JSON serialization summary (DEBUG)",
-                    source,
-                    null,
-                    new Dictionary<string, object?>
-                    {
-                        ["count"] = count,
-                        ["totalMs"] = totalMs,
-                        ["averageMs"] = averageMs,
-                        ["top"] = entries.Count,
-                    }));
+                var summary = new Dictionary<string, object?>
+                {
+                    ["count"] = count,
+                    ["totalMs"] = totalMs,
+                    ["averageMs"] = averageMs,
+                    ["top"] = entries.Count,
+                };
+                log.Enqueue(new LogEntry(timestamp, LogLevel.Debug, "JSON serialization summary", source, log.SerializeData(summary)));
 
                 for (var i = 0; i < entries.Count; i++)
                 {
                     var entry = entries[i];
                     var elapsedMs = entry.ElapsedTicks * 1000.0 / Stopwatch.Frequency;
-                    log.Enqueue(new LogEntry(
-                        log,
-                        timestamp,
-                        LogLevel.Debug,
-                        $"JSON serialization slow #{i + 1:00} (DEBUG)",
-                        source,
-                        null,
-                        new Dictionary<string, object?>
-                        {
-                            ["rank"] = i + 1,
-                            ["elapsedMs"] = elapsedMs,
-                            ["elapsedTicks"] = entry.ElapsedTicks,
-                            ["json"] = TryConvertToJsonElement(entry.Json),
-                        }));
+                    var data = new Dictionary<string, object?>
+                    {
+                        ["rank"] = i + 1,
+                        ["elapsedMs"] = elapsedMs,
+                        ["elapsedTicks"] = entry.ElapsedTicks,
+                        ["json"] = TryConvertToJsonElement(entry.Json),
+                    };
+                    log.Enqueue(new LogEntry(timestamp, LogLevel.Debug, $"JSON serialization slow #{i + 1}", source, log.SerializeData(data)));
                 }
             }
             catch
