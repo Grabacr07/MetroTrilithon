@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
-using System.Text.Json;
 using System.Threading.Channels;
 
 namespace Amethystra.Diagnostics;
@@ -55,19 +54,6 @@ partial class AppLog
         {
             Debug.WriteLine($"=== UNKNOWN ERROR: {nameof(this.PumpAsync)} ===");
             Debug.WriteLine(ex);
-        }
-    }
-
-
-    private string SerializeData(Dictionary<string, object?> data)
-    {
-        try
-        {
-            return JsonSerializer.Serialize(data, this._jsonOptions);
-        }
-        catch
-        {
-            return "{serialization_failed}";
         }
     }
 

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -16,6 +15,7 @@ public sealed partial class AppLog : IDisposable
     private readonly AppLogOptions _options;
     private readonly JsonSerializerOptions _jsonOptions;
     private readonly DisposeGateSlim<AppLog> _disposeGate = new();
+    private readonly SerializationSummary _serializationSummary = new();
 
     public AppLog(AppLogOptions options, params IEnumerable<JsonConverter> converters)
     {
@@ -96,12 +96,28 @@ public sealed partial class AppLog : IDisposable
             ? typeName
             : $"{typeName}.{memberName}";
 
+    private string SerializeData(Dictionary<string, object?> data)
+    {
+        using var measurement = this._serializationSummary.BeginMeasurement();
+        try
+        {
+            var json = JsonSerializer.Serialize(data, this._jsonOptions);
+            measurement.SetSerializedData(json);
+            return json;
+        }
+        catch
+        {
+            return "{serialization_failed}";
+        }
+    }
+
     public void Dispose()
     {
         if (this._disposeGate.TryDispose() == false) return;
 
         try
         {
+            this._serializationSummary.EnqueueSummary(this);
             try
             {
                 this._queue.Writer.Complete();
