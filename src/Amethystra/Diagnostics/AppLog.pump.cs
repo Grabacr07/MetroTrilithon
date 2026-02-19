@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Channels;
-using Mio.Destructive;
 
 namespace Amethystra.Diagnostics;
 
@@ -30,20 +29,11 @@ partial class AppLog
     {
         try
         {
-            this.LogFilePath.Parent.EnsureCreated();
-
-            await using var stream = new FileStream(this.LogFilePath.AsDestructive().FullName, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
-            await using var writer = new StreamWriter(stream, this._utf8NoBom);
-            var lastRotateCheck = Stopwatch.StartNew();
-            var lastFlush = Stopwatch.StartNew();
-            var linesSinceFlush = 0;
+            this._options.LogFilePath.Parent.EnsureCreated();
+            using var writer = new RotatingLogWriter(this._options);
 
             await foreach (var entry in this._queue.Reader.ReadAllAsync(cancellationToken).ConfigureAwait(false))
             {
-                // 専用スレッドでの直列処理のため、非同期 I/O を行うメリットが薄い（むしろオーバーヘッドになる）
-                // あえて同期 I/O を使用する
-                // ReSharper disable MethodHasAsyncOverload / MethodHasAsyncOverloadWithCancellation
-
                 var dropped = Interlocked.Exchange(ref this._droppedCount, 0);
                 if (dropped > 0)
                 {
@@ -54,31 +44,8 @@ partial class AppLog
                     writer.WriteLine(new LogEntry(this, ts, LogLevel.Warn, message, source, null, data).FormattedText);
                 }
 
-                writer.WriteLine(entry.FormattedText);
-                if (entry.ExceptionText is not null) writer.WriteLine(entry.ExceptionText);
-
-                linesSinceFlush++;
-
-                if (lastRotateCheck.ElapsedMilliseconds >= 1000)
-                {
-                    lastRotateCheck.Restart();
-                    this.TryRotateLogFileIfNeeded();
-                }
-
-                if (linesSinceFlush >= 64 || lastFlush.ElapsedMilliseconds >= 250)
-                {
-                    lastFlush.Restart();
-                    linesSinceFlush = 0;
-
-                    writer.Flush();
-                    stream.Flush(false);
-                }
-
-                // ReSharper restore MethodHasAsyncOverload / MethodHasAsyncOverloadWithCancellation
+                writer.Write(entry);
             }
-
-            await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
-            stream.Flush(true);
         }
         catch (OperationCanceledException)
         {
@@ -90,6 +57,7 @@ partial class AppLog
             Debug.WriteLine(ex);
         }
     }
+
 
     private string SerializeData(Dictionary<string, object?> data)
     {

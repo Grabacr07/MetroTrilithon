@@ -14,10 +14,10 @@ partial class AppLog
         => _default ?? throw new InvalidOperationException($"{nameof(AppLog)}.{nameof(Default)} is not initialized. Call {nameof(AppLog)}.{nameof(CreateDefault)}(...) first.");
 
     public static void CreateDefault(IAssemblyInfo info, params IEnumerable<JsonConverter> converters)
-        => CreateDefault(new Options(info), converters);
+        => CreateDefault(new AppLogOptions(info), converters);
 
     [MemberNotNull(nameof(_default))]
-    public static void CreateDefault(Options options, params IEnumerable<JsonConverter> converters)
+    public static void CreateDefault(AppLogOptions options, params IEnumerable<JsonConverter> converters)
     {
         if (Interlocked.CompareExchange(ref _default, new AppLog(options, converters), null) is not null)
         {

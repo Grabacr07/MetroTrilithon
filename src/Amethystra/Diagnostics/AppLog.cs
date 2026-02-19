@@ -2,56 +2,22 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
-using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using Amethystra.Disposables;
-using Amethystra.Properties;
-using Mio;
 
 namespace Amethystra.Diagnostics;
 
 public sealed partial class AppLog : IDisposable
 {
-    public sealed record Options(
-        FilePath LogFilePath,
-        long MaxLogBytes = 10L * 1024L * 1024L,
-        int MaxGenerations = 5,
-        int QueueCapacity = 2048,
-        int BestEffortTimeoutMsForDispose = 1000)
-    {
-        public Options(IAssemblyInfo assemblyInfo)
-            : this(CreatePath(assemblyInfo))
-        {
-        }
-
-        public static FilePath CreatePath(IAssemblyInfo info)
-            => new DirectoryPath(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData))
-                .ChildDirectory(info.Company)
-                .ChildDirectory(info.Product)
-                .EnsureCreated()
-                .ChildFile($"{Assembly.GetEntryAssembly()?.GetName().Name}.log");
-    }
-
-    private readonly Options _options;
-    private readonly Encoding _utf8NoBom = new UTF8Encoding(false);
+    private readonly AppLogOptions _options;
     private readonly JsonSerializerOptions _jsonOptions;
     private readonly DisposeGateSlim<AppLog> _disposeGate = new();
 
-    private FilePath LogFilePath
-        => _overrideLogFilePath ?? this._options.LogFilePath;
-
-    private long MaxLogBytes
-        => _overrideMaxLogBytes ?? this._options.MaxLogBytes;
-
-    private int MaxGenerations
-        => _overrideMaxGenerations ?? this._options.MaxGenerations;
-
-    public AppLog(Options options, params IEnumerable<JsonConverter> converters)
+    public AppLog(AppLogOptions options, params IEnumerable<JsonConverter> converters)
     {
         this._options = options;
         this._jsonOptions = new JsonSerializerOptions(JsonSerializerDefaults.General)

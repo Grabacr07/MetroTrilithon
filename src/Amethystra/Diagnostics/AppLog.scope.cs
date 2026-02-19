@@ -34,6 +34,8 @@ partial class AppLog
 
         public void Dispose()
         {
+            if (this._log is null) throw new InvalidOperationException($"{nameof(OperationScope)} is not properly initialized.");
+
             var end = Stopwatch.GetTimestamp();
             var elapsedMs = (end - this._startTimestamp) * 1000.0 / Stopwatch.Frequency;
             var data = this._data ?? [];
