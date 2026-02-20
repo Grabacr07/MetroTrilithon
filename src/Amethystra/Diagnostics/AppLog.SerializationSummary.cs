@@ -30,7 +30,7 @@ partial class AppLog
                 {
                     count = this._count;
                     totalTicks = this._totalTicks;
-                    entries = new List<TimingEntry>(this._topEntries);
+                    entries = [..this._topEntries];
                 }
 
                 const string source = $"{nameof(SerializationSummary)}.{nameof(this.EnqueueSummary)}";

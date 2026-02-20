@@ -13,7 +13,8 @@ public record struct AppLogOptions(
     long MaxLogBytes = 10L * 1024L * 1024L,
     int MaxGenerations = 5,
     int QueueCapacity = 2048,
-    int BestEffortTimeoutMsForDispose = 1000)
+    int BestEffortTimeoutMsForDispose = 1000,
+    bool Warmup = true)
 {
     public AppLogOptions(IAssemblyInfo assemblyInfo)
         : this(CreatePath(assemblyInfo), UTF8NoBOM)

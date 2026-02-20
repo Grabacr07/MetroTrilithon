@@ -48,5 +48,10 @@ partial class AppLog
         };
 
         AppDomain.CurrentDomain.ProcessExit += (_, __) => Default.Dispose();
+
+        if (options.Warmup)
+        {
+            _default.SerializeData(new Dictionary<string, object?> { [_systemSource] = nameof(options.Warmup), });
+        }
     }
 }

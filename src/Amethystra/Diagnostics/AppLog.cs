@@ -10,6 +10,9 @@ namespace Amethystra.Diagnostics;
 
 public sealed partial class AppLog : IDisposable
 {
+    private const string _systemSource = "System";
+    private const string _serializationFailedData = "{serialization_failed}";
+
     private readonly AppLogOptions _options;
     private readonly JsonSerializerOptions _jsonOptions;
     private readonly DisposeGateSlim<AppLog> _disposeGate = new();
@@ -94,7 +97,7 @@ public sealed partial class AppLog : IDisposable
         }
         catch
         {
-            return "{serialization_failed}";
+            return _serializationFailedData;
         }
     }
 
