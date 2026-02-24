@@ -5,7 +5,6 @@ using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using System.Windows;
 using Amethystra.Disposables;
-using Amethystra.Utils;
 using Reactive.Bindings;
 using Reactive.Bindings.Extensions;
 using Reactive.Bindings.TinyLinq;

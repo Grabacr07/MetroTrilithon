@@ -1,17 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using System.Threading.Tasks;
+using Amethystra.Disposables;
 
 namespace Amethystra.Synchronization;
 
-public sealed class SuspensionGate(Action? onResumed = null) : IDisposable
+public sealed class SuspensionGate : IDisposable
 {
     private readonly BehaviorSubject<int> _count = new(0);
-    private int _suspendCount;
+    private readonly RefCountGate _gate;
+
+    public SuspensionGate(Action? onResumed = null)
+        => this._gate = new RefCountGate(this._count.OnNext, onResumed);
 
     public IObservable<bool> IsSuspended
         => this._count
@@ -19,29 +19,7 @@ public sealed class SuspensionGate(Action? onResumed = null) : IDisposable
             .DistinctUntilChanged();
 
     public IDisposable Acquire()
-    {
-        this._count.OnNext(Interlocked.Increment(ref this._suspendCount));
-        var disposed = 0;
-
-        return Disposable.Create(() =>
-        {
-            if (Interlocked.Exchange(ref disposed, 1) == 1)
-            {
-                return;
-            }
-
-            var after = Interlocked.Decrement(ref this._suspendCount);
-            if (after <= 0)
-            {
-                Interlocked.Exchange(ref this._suspendCount, 0);
-                this._count.OnNext(0);
-                onResumed?.Invoke();
-                return;
-            }
-
-            this._count.OnNext(after);
-        });
-    }
+        => this._gate.Acquire();
 
     public void Dispose()
         => this._count.Dispose();

@@ -76,7 +76,4 @@ public static class EnumerableEx
         public ObservableCollection<T> ToObservableCollection()
             => [.. source];
     }
-
-    public static void Dispose(this IEnumerable<IDisposable> disposables)
-        => disposables.ForEach(static x => x.Dispose());
 }

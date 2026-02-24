@@ -3,15 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Concurrency;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Reactive.Threading.Tasks;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Amethystra.Diagnostics;
 using Amethystra.Disposables;
-using Amethystra.Linq;
 using Mio;
 using Mio.Destructive;
 using Reactive.Bindings;
@@ -52,8 +51,8 @@ public abstract partial class ReactiveSettingsBase : IDisposable
     private readonly ReactiveProperty<bool> _isInitialized = new();
     private readonly Subject<LoadReason> _load = new();
     private readonly Subject<SaveReason> _save = new();
-    private readonly CompositeDisposable _disposables = [];
     private readonly ScopedFlag _ignoreChangesFromLoad = new();
+    private readonly DisposeGate<ReactiveSettingsBase> _disposeGate = [];
     private long _lastSaveTimestamp;
 
     protected virtual bool AutoSave
@@ -63,19 +62,19 @@ public abstract partial class ReactiveSettingsBase : IDisposable
     /// Gets the interval for throttling multiple settings load calls.
     /// </summary>
     protected virtual TimeSpan LoadThrottlingDuration
-        => TimeSpan.FromMilliseconds(1000);
+        => TimeSpan.FromMilliseconds(300);
 
     /// <summary>
     /// Gets the interval for throttling multiple settings save calls.
     /// </summary>
     protected virtual TimeSpan SaveThrottlingDuration
-        => TimeSpan.FromMilliseconds(1000);
+        => TimeSpan.FromMilliseconds(300);
 
     /// <summary>
     /// Gets the time span to ignore file system changes that are caused by the program itself.
     /// </summary>
     protected virtual TimeSpan SelfChangeDuration
-        => TimeSpan.FromMilliseconds(500);
+        => TimeSpan.FromMilliseconds(1200);
 
     public IReadOnlyReactiveProperty<bool> IsInitialized
         => this._isInitialized;
@@ -96,7 +95,7 @@ public abstract partial class ReactiveSettingsBase : IDisposable
                 NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size | NotifyFilters.FileName,
                 EnableRaisingEvents = true,
             }
-            .AddTo(this._disposables);
+            .AddTo(this._disposeGate);
 
         this._load
             .Merge(Observable
@@ -114,26 +113,46 @@ public abstract partial class ReactiveSettingsBase : IDisposable
             .ObserveOn(scheduler ?? TaskPoolScheduler.Default)
             .SelectMany(reason => Observable.FromAsync(() => this.LoadSettingsAsync(reason)))
             .Subscribe()
-            .AddTo(this._disposables);
+            .AddTo(this._disposeGate);
 
         this._save
             .Throttle(_ => Observable.Timer(this.SaveThrottlingDuration))
             .ObserveOn(scheduler ?? TaskPoolScheduler.Default)
             .SelectMany(reason => Observable.FromAsync(() => this.SaveSettingsAsync(reason)))
             .Subscribe()
-            .AddTo(this._disposables);
+            .AddTo(this._disposeGate);
 
         this._load.OnNext(LoadReason.Initialize);
     }
 
+    public Task EnsureLoadedAsync()
+        => this._isInitialized
+            .Where(x => x)
+            .FirstAsync()
+            .ToTask();
+
     public virtual void Load()
     {
+        this._disposeGate.ThrowIfDisposed();
         this._load.OnNext(LoadReason.Explicit);
+    }
+
+    public virtual Task LoadAsync()
+    {
+        this._disposeGate.ThrowIfDisposed();
+        return this.LoadSettingsAsync(LoadReason.Explicit);
     }
 
     public virtual void Save()
     {
+        this._disposeGate.ThrowIfDisposed();
         this._save.OnNext(SaveReason.Explicit);
+    }
+
+    public virtual Task SaveAsync()
+    {
+        this._disposeGate.ThrowIfDisposed();
+        return this.SaveSettingsAsync(SaveReason.Explicit);
     }
 
     /// <summary>
@@ -146,7 +165,9 @@ public abstract partial class ReactiveSettingsBase : IDisposable
         var deltaMs = eventMs - lastSaveMs;
         var result = deltaMs > this.SelfChangeDuration.TotalMilliseconds;
 
-        Log.Debug(result ? "✅Pass" : "❌Ignore", new() { { args.Value.EventArgs.FullPath, "path" }, { $"{args.Timestamp:HH:mm:ss.fff}", "timestamp" }, { $"{DateTimeOffset.FromUnixTimeMilliseconds(lastSaveMs):HH:mm:ss.fff}", "lastSave" }, { $"{TimeSpan.FromMilliseconds(deltaMs):g}", "Δ" } });
+        Log.Debug(
+            result ? "✅Pass" : "❌Ignore",
+            new() { { args.Value.EventArgs.FullPath, "path" }, { $"{args.Timestamp:HH:mm:ss.fff}", "timestamp" }, { $"{DateTimeOffset.FromUnixTimeMilliseconds(lastSaveMs):HH:mm:ss.fff}", "lastSave" }, { $"{TimeSpan.FromMilliseconds(deltaMs):g}", "Δ" } });
         return result;
     }
 
@@ -156,7 +177,7 @@ public abstract partial class ReactiveSettingsBase : IDisposable
         {
             if (this._settingsFilePath.Exists() == false) return;
 
-            var json = await this._settingsFilePath.ReadAllTextAsync();
+            var json = await this._settingsFilePath.ReadAllTextAsync().ConfigureAwait(false);
             var outerDictionary = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json, _jsonSerializerOptions);
             if (outerDictionary == null || outerDictionary.TryGetValue(this._settingsSectionName, out var sectionElement) == false) return;
 
@@ -197,14 +218,14 @@ public abstract partial class ReactiveSettingsBase : IDisposable
         {
             var sectionDictionary = this._propertyBrokers.ToDictionary(static x => x.PropertyName, x => x.Property.Value);
             var outerDictionary = this._settingsFilePath.Exists()
-                ? JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(await this._settingsFilePath.ReadAllTextAsync(), _jsonSerializerOptions) ?? []
+                ? JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(await this._settingsFilePath.ReadAllTextAsync().ConfigureAwait(false), _jsonSerializerOptions) ?? []
                 : [];
             outerDictionary[this._settingsSectionName] = JsonSerializer.SerializeToElement(sectionDictionary, _jsonSerializerOptions);
 
             var newJson = JsonSerializer.Serialize(outerDictionary, _jsonSerializerOptions);
 
             Interlocked.Exchange(ref this._lastSaveTimestamp, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
-            await this._settingsFilePath.AsDestructive().WriteAsync(newJson);
+            await this._settingsFilePath.AsDestructive().WriteAsync(newJson).ConfigureAwait(false);
 
             Log.Info("✅Success", new() { reason, { this._settingsFilePath.AsDestructive().FullName, "fullname" } });
         }
@@ -216,9 +237,10 @@ public abstract partial class ReactiveSettingsBase : IDisposable
 
     public virtual void Dispose()
     {
-        this._propertyBrokers.Dispose();
-        this._disposables.Dispose();
-
-        GC.SuppressFinalize(this);
+        if (this._disposeGate.TryDispose())
+        {
+            this._propertyBrokers.Dispose();
+            GC.SuppressFinalize(this);
+        }
     }
 }

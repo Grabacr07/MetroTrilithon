@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reactive.Disposables;
-using System.Threading.Tasks;
 
 namespace Amethystra.Disposables;
 
@@ -13,24 +9,20 @@ namespace Amethystra.Disposables;
 /// </summary>
 public sealed class ScopedFlag : IEquatable<ScopedFlag>
 {
-    // スコープの参照カウント
-    private int _count;
+    private readonly RefCountGate _gate = new();
 
     /// <summary>
     /// Returns true if <see cref="Enable"/> has been called more times than <see cref="IDisposable.Dispose"/>.
     /// </summary>
     public bool Value
-        => Volatile.Read(ref this._count) > 0;
+        => this._gate.IsActive;
 
     /// <summary>
     /// Enables the flag (sets to true) and returns an <see cref="IDisposable"/>.
     /// When disposed, it decrements the counter and resets to false if it reaches zero.
     /// </summary>
     public IDisposable Enable()
-    {
-        Interlocked.Increment(ref this._count);
-        return Disposable.Create(() => Interlocked.Decrement(ref this._count));
-    }
+        => this._gate.Acquire();
 
     public bool Equals(ScopedFlag? other)
         => this.Value == other?.Value;

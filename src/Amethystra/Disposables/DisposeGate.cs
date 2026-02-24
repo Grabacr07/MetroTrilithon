@@ -76,7 +76,7 @@ public sealed class DisposeGate<T> : IDisposeGate, ICollection<IDisposable>
         return item;
     }
 
-    private ICollection<IDisposable> EnsureAccessDisposables()
+    private List<IDisposable> EnsureAccessDisposables()
     {
         this.ThrowIfDisposed();
         return this._disposables;
@@ -89,7 +89,7 @@ public sealed class DisposeGate<T> : IDisposeGate, ICollection<IDisposable>
         => this.EnsureAccessDisposables().Count;
 
     bool ICollection<IDisposable>.IsReadOnly
-        => this.EnsureAccessDisposables().IsReadOnly;
+        => false;
 
     void ICollection<IDisposable>.Clear()
         => this.EnsureAccessDisposables().Clear();
