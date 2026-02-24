@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
+using Amethystra.Diagnostics;
 
 namespace Amethystra.Disposables;
 
@@ -21,8 +23,8 @@ public sealed class ScopedFlag : IEquatable<ScopedFlag>
     /// Enables the flag (sets to true) and returns an <see cref="IDisposable"/>.
     /// When disposed, it decrements the counter and resets to false if it reaches zero.
     /// </summary>
-    public IDisposable Enable()
-        => this._gate.Acquire();
+    public IDisposable Enable([CallerMemberName] string member = "", [CallerFilePath] string file = "")
+        => this._gate.Acquire(Caller.GetCallerLabel(member, file));
 
     public bool Equals(ScopedFlag? other)
         => this.Value == other?.Value;

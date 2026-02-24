@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Runtime.CompilerServices;
+using Amethystra.Diagnostics;
 using Amethystra.Disposables;
 
 namespace Amethystra.Synchronization;
@@ -18,8 +20,8 @@ public sealed class SuspensionGate : IDisposable
             .Select(static x => x > 0)
             .DistinctUntilChanged();
 
-    public IDisposable Acquire()
-        => this._gate.Acquire();
+    public IDisposable Acquire([CallerMemberName] string member = "", [CallerFilePath] string file = "")
+        => this._gate.Acquire(Caller.GetCallerLabel(member, file));
 
     public void Dispose()
         => this._count.Dispose();
