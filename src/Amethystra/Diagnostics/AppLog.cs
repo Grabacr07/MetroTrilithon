@@ -8,7 +8,7 @@ using Amethystra.Disposables;
 
 namespace Amethystra.Diagnostics;
 
-public sealed partial class AppLog : IDisposable
+public sealed partial class AppLog : IDisposable, IAppLog
 {
     private const string _systemSource = "System";
     private const string _serializationFailedData = "{serialization_failed}";

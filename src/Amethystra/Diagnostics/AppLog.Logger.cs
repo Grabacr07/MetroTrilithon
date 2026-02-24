@@ -3,8 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 
 namespace Amethystra.Diagnostics;
 
@@ -18,63 +18,67 @@ partial class AppLog
 
     public readonly struct Logger(AppLog log, string typeName)
     {
+        private readonly AppLog? _log = log ?? throw new ArgumentNullException(nameof(log));
+
         [Conditional("DEBUG")]
         public void Debug(
             string message,
             Data? data = null,
             [CallerMemberName] string? caller = null)
-            => log.WriteFromTypedLogger(LogLevel.Debug, message, null, typeName, caller, data);
+            => this._log?.WriteFromTypedLogger(LogLevel.Debug, message, null, typeName, caller, data);
 
         public void Info(
             string message,
             Data? data = null,
             [CallerMemberName] string? caller = null)
-            => log.WriteFromTypedLogger(LogLevel.Info, message, null, typeName, caller, data);
+            => this._log?.WriteFromTypedLogger(LogLevel.Info, message, null, typeName, caller, data);
 
         public void Warn(
             string message,
             Data? data = null,
             [CallerMemberName] string? caller = null)
-            => log.WriteFromTypedLogger(LogLevel.Warn, message, null, typeName, caller, data);
+            => this._log?.WriteFromTypedLogger(LogLevel.Warn, message, null, typeName, caller, data);
 
         public void Warn(
             Exception exception,
             string message,
             Data? data = null,
             [CallerMemberName] string? caller = null)
-            => log.WriteFromTypedLogger(LogLevel.Warn, message, exception, typeName, caller, data);
+            => this._log?.WriteFromTypedLogger(LogLevel.Warn, message, exception, typeName, caller, data);
 
         public void Error(
             Exception exception,
             string message,
             Data? data = null,
             [CallerMemberName] string? caller = null)
-            => log.WriteFromTypedLogger(LogLevel.Error, message, exception, typeName, caller, data);
+            => this._log?.WriteFromTypedLogger(LogLevel.Error, message, exception, typeName, caller, data);
 
         public void Error(
             string message,
             Data? data = null,
             [CallerMemberName] string? caller = null)
-            => log.WriteFromTypedLogger(LogLevel.Error, message, null, typeName, caller, data);
+            => this._log?.WriteFromTypedLogger(LogLevel.Error, message, null, typeName, caller, data);
 
         public void Fatal(
             Exception exception,
             string message,
             Data? data = null,
             [CallerMemberName] string? caller = null)
-            => log.WriteFromTypedLogger(LogLevel.Fatal, message, exception, typeName, caller, data);
+            => this._log?.WriteFromTypedLogger(LogLevel.Fatal, message, exception, typeName, caller, data);
 
         public void Fatal(
             string message,
             Data? data = null,
             [CallerMemberName] string? caller = null)
-            => log.WriteFromTypedLogger(LogLevel.Fatal, message, null, typeName, caller, data);
+            => this._log?.WriteFromTypedLogger(LogLevel.Fatal, message, null, typeName, caller, data);
 
         public IDisposable BeginOperation(
             string operationName,
             Data? data = null,
             [CallerMemberName] string? caller = null)
-            => new OperationScope(log, typeName, operationName, data, caller);
+            => this._log is not null
+                ? new OperationScope(this._log, typeName, operationName, data, caller)
+                : Disposable.Empty;
     }
 
     public sealed class Data : IEnumerable<(string key, object? value)>

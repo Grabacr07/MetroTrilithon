@@ -10,8 +10,8 @@ partial class AppLog
 {
     private static AppLog? _default;
 
-    public static AppLog Default
-        => _default ?? throw new InvalidOperationException($"{nameof(AppLog)}.{nameof(Default)} is not initialized. Call {nameof(AppLog)}.{nameof(CreateDefault)}(...) first.");
+    public static IAppLog Default
+        => _default ?? NullAppLog.Instance;
 
     public static void CreateDefault(IAssemblyInfo info, params IEnumerable<JsonConverter> converters)
         => CreateDefault(new AppLogOptions(info), converters);
@@ -47,11 +47,26 @@ partial class AppLog
             e.SetObserved();
         };
 
-        AppDomain.CurrentDomain.ProcessExit += (_, __) => Default.Dispose();
+        AppDomain.CurrentDomain.ProcessExit += (_, __) => _default.Dispose();
 
         if (options.Warmup)
         {
             _default.SerializeData(new Dictionary<string, object?> { [_systemSource] = nameof(options.Warmup), });
         }
+    }
+
+    private sealed class NullAppLog : IAppLog
+    {
+        public static readonly IAppLog Instance = new NullAppLog();
+
+        private NullAppLog()
+        {
+        }
+
+        public Logger For<T>()
+            => new();
+
+        public Logger For(Type type)
+            => new();
     }
 }
