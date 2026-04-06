@@ -186,7 +186,7 @@ public abstract partial class ReactiveSettingsBase : IDisposable
 
             foreach (var broker in this._propertyBrokers)
             {
-                if (sectionDictionary.TryGetValue(broker.PropertyName, out var element) == false) continue;
+                if (sectionDictionary.TryGetValue(broker.SerializedPropertyName, out var element) == false) continue;
 
                 var convertedValue = JsonSerializer.Deserialize(element.GetRawText(), broker.ValueType, _jsonSerializerOptions);
                 using (this._ignoreChangesFromLoad.Enable())
@@ -216,7 +216,7 @@ public abstract partial class ReactiveSettingsBase : IDisposable
     {
         try
         {
-            var sectionDictionary = this._propertyBrokers.ToDictionary(static x => x.PropertyName, x => x.Property.Value);
+            var sectionDictionary = this._propertyBrokers.ToDictionary(static x => x.SerializedPropertyName, x => x.Property.Value);
             var outerDictionary = this._settingsFilePath.Exists()
                 ? JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(await this._settingsFilePath.ReadAllTextAsync().ConfigureAwait(false), _jsonSerializerOptions) ?? []
                 : [];

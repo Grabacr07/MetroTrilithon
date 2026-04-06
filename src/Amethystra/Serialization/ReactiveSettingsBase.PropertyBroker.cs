@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Reflection;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Reactive.Bindings;
 
@@ -14,7 +15,7 @@ partial class ReactiveSettingsBase
     {
         private readonly IDisposable _listener;
 
-        public string PropertyName { get; }
+        public string SerializedPropertyName { get; }
 
         public Type ValueType { get; }
 
@@ -22,14 +23,15 @@ partial class ReactiveSettingsBase
 
         private ReactivePropertyBroker(object propertyOwner, PropertyInfo propertyInfo, MethodInfo listenerMethodInfo)
         {
-            this.PropertyName = propertyInfo.Name;
+            var propertyName = propertyInfo.Name;
+            this.SerializedPropertyName = propertyInfo.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name ?? propertyInfo.Name;
             this.ValueType = propertyInfo.PropertyType.GetGenericArguments()[0];
             this.Property = propertyInfo.GetValue(propertyOwner) as IReactiveProperty
                 ?? throw new InvalidOperationException($"Property '{propertyInfo.Name}' not found");
 
             this._listener = listenerMethodInfo
                     .MakeGenericMethod(this.ValueType)
-                    .Invoke(propertyOwner, [this.Property, this.PropertyName]) as IDisposable
+                    .Invoke(propertyOwner, [this.Property, propertyName]) as IDisposable
                 ?? throw new InvalidOperationException($"Method '{listenerMethodInfo.Name}' invoked failed");
         }
 
