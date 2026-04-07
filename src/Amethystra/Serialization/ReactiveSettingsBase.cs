@@ -216,7 +216,9 @@ public abstract partial class ReactiveSettingsBase : IDisposable
     {
         try
         {
-            var sectionDictionary = this._propertyBrokers.ToDictionary(static x => x.SerializedPropertyName, x => x.Property.Value);
+            var sectionDictionary = this._propertyBrokers
+                .Where(x => Equals(x.Property.Value, x.DefaultValue) == false)
+                .ToDictionary(static x => x.SerializedPropertyName, x => x.Property.Value);
             var outerDictionary = this._settingsFilePath.Exists()
                 ? JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(await this._settingsFilePath.ReadAllTextAsync().ConfigureAwait(false), _jsonSerializerOptions) ?? []
                 : [];

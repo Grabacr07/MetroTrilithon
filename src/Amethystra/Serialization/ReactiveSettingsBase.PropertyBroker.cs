@@ -21,6 +21,8 @@ partial class ReactiveSettingsBase
 
         public IReactiveProperty Property { get; }
 
+        public object? DefaultValue { get; }
+
         private ReactivePropertyBroker(object propertyOwner, PropertyInfo propertyInfo, MethodInfo listenerMethodInfo)
         {
             var propertyName = propertyInfo.Name;
@@ -28,6 +30,7 @@ partial class ReactiveSettingsBase
             this.ValueType = propertyInfo.PropertyType.GetGenericArguments()[0];
             this.Property = propertyInfo.GetValue(propertyOwner) as IReactiveProperty
                 ?? throw new InvalidOperationException($"Property '{propertyInfo.Name}' not found");
+            this.DefaultValue = this.Property.Value;
 
             this._listener = listenerMethodInfo
                     .MakeGenericMethod(this.ValueType)
