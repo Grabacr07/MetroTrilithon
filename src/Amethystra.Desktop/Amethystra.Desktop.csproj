@@ -15,6 +15,10 @@
     <PackageProjectUrl>https://github.com/Grabacr07/Amethystra</PackageProjectUrl>
     <PackageLicenseFile>..\..\LICENSE.txt</PackageLicenseFile>
     <PackageReadmeFile>..\..\README.md</PackageReadmeFile>
+    <ThemeResourceKeyGeneratorProject>$(MSBuildThisFileDirectory)..\..\tools\ThemeResourceKeyGen\ThemeResourceKeyGen.csproj</ThemeResourceKeyGeneratorProject>
+    <ThemeResourceKeyGeneratorTargetFramework>net10.0-windows</ThemeResourceKeyGeneratorTargetFramework>
+    <ThemeResourceKeyGeneratorExecutable>$(MSBuildThisFileDirectory)..\..\tools\ThemeResourceKeyGen\bin\$(Configuration)\$(ThemeResourceKeyGeneratorTargetFramework)\ThemeResourceKeyGen.exe</ThemeResourceKeyGeneratorExecutable>
+    <GeneratedThemeResourceKeysFile>$(BaseIntermediateOutputPath)Generated\ThemeResourceKeys.g.cs</GeneratedThemeResourceKeysFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -29,5 +33,38 @@
     <ProjectReference Include="..\Amethystra.CodeAnalysis\Amethystra.CodeAnalysis.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\Amethystra\Amethystra.csproj" />
   </ItemGroup>
+
+  <Target Name="BuildThemeResourceKeyGenerator"
+          Condition="'$(TargetFramework)' != ''">
+    <MSBuild Projects="$(ThemeResourceKeyGeneratorProject)"
+             Targets="Build"
+             Properties="Configuration=$(Configuration)" />
+  </Target>
+
+  <Target Name="GenerateThemeResourceKeys"
+          BeforeTargets="CoreCompile"
+          Condition="'$(TargetFramework)' != ''"
+          DependsOnTargets="BuildThemeResourceKeyGenerator">
+    <ItemGroup>
+      <_WpfUiPackageReference Include="@(PackageReference)"
+                              Condition="'%(Identity)' == 'WPF-UI'" />
+    </ItemGroup>
+
+    <PropertyGroup>
+      <_WpfUiAssemblyPath>$(NuGetPackageRoot)wpf-ui\%(_WpfUiPackageReference.Version)\lib\net10.0-windows7.0\Wpf.Ui.dll</_WpfUiAssemblyPath>
+    </PropertyGroup>
+
+    <Error Condition="'%(_WpfUiPackageReference.Version)' == ''"
+           Text="Wpf.Ui package reference was not found." />
+    <Error Condition="Exists('$(_WpfUiAssemblyPath)') == false"
+           Text="Wpf.Ui assembly was not found at $(_WpfUiAssemblyPath)." />
+
+    <Exec Command="&quot;$(ThemeResourceKeyGeneratorExecutable)&quot; --assembly-path &quot;$(_WpfUiAssemblyPath)&quot; --output-path &quot;$(GeneratedThemeResourceKeysFile)&quot; --namespace &quot;Amethystra.UI.Markup&quot;" />
+
+    <ItemGroup>
+      <Compile Include="$(GeneratedThemeResourceKeysFile)"
+               Visible="false" />
+    </ItemGroup>
+  </Target>
 
 </Project>

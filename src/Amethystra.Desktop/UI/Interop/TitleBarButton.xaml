@@ -14,7 +14,7 @@
 
     <converters:DarkerColorConverter x:Key="DarkerColorConverter" />
     <markup:BindingProxy x:Key="PaletteRedBrushProxy"
-                         Data="{DynamicResource PaletteRedBrush}" />
+                         Data="{DynamicResource {x:Static markup:ThemeResourceKeys.Danger}}" />
 
     <Style TargetType="interop:TitleBarButton">
         <Setter Property="OverridesDefaultStyle"
@@ -26,7 +26,7 @@
         <Setter Property="Background"
                 Value="Transparent" />
         <Setter Property="Foreground"
-                Value="{DynamicResource TextFillColorPrimaryBrush}" />
+                Value="{DynamicResource {x:Static markup:ThemeResourceKeys.ForegroundPrimary}}" />
         <Setter Property="HorizontalContentAlignment"
                 Value="Center" />
         <Setter Property="VerticalContentAlignment"
@@ -38,7 +38,7 @@
         <Setter Property="Focusable"
                 Value="False" />
         <Setter Property="FocusVisualStyle"
-                Value="{DynamicResource DefaultControlFocusVisualStyle}" />
+                Value="{DynamicResource {x:Static markup:ThemeResourceKeys.DefaultControlFocusVisualStyle}}" />
         <Setter Property="Canvas.ZIndex"
                 Value="1" />
         <Setter Property="Template">
@@ -71,12 +71,12 @@
             <Trigger Property="IsMouseOver"
                      Value="True">
                 <Setter Property="Background"
-                        Value="{DynamicResource ControlFillColorSecondaryBrush}" />
+                        Value="{DynamicResource {x:Static markup:ThemeResourceKeys.ControlFillSecondary}}" />
             </Trigger>
             <Trigger Property="IsPressed"
                      Value="True">
                 <Setter Property="Background"
-                        Value="{DynamicResource ControlFillColorTertiaryBrush}" />
+                        Value="{DynamicResource {x:Static markup:ThemeResourceKeys.ControlFillTertiary}}" />
             </Trigger>
             <MultiTrigger>
                 <MultiTrigger.Conditions>
@@ -118,7 +118,7 @@
             <Trigger Property="IsMouseOver"
                      Value="True">
                 <Setter Property="Background"
-                        Value="{DynamicResource PaletteRedBrush}" />
+                        Value="{DynamicResource {x:Static markup:ThemeResourceKeys.Danger}}" />
             </Trigger>
             <Trigger Property="IsPressed"
                      Value="True">

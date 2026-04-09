@@ -13,4 +13,7 @@
   <Project Path="Amethystra.Desktop/Amethystra.Desktop.csproj" />
   <Project Path="Amethystra.Test/Amethystra.Test.csproj" Id="e60ef7c9-e53a-4a09-901c-6d80d1e5cf78" />
   <Project Path="Amethystra/Amethystra.csproj" />
+  <Folder Name="/.tools/">
+    <Project Path="../tools/ThemeResourceKeyGen/ThemeResourceKeyGen.csproj" />
+  </Folder>
 </Solution>
