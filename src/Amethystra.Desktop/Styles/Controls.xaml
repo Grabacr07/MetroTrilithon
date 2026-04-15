@@ -3,6 +3,7 @@
 
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="/Amethystra.Desktop;component/UI/Controls/BindableRichTextBox.xaml" />
+        <ResourceDictionary Source="/Amethystra.Desktop;component/UI/Controls/SelectableTextBlock.xaml" />
         <ResourceDictionary Source="/Amethystra.Desktop;component/UI/Controls/TextPair.xaml" />
         <ResourceDictionary Source="/Amethystra.Desktop;component/UI/Interop/TitleBar.xaml" />
         <ResourceDictionary Source="/Amethystra.Desktop;component/UI/Interop/TitleBarButton.xaml" />
