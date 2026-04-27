@@ -5,6 +5,7 @@ using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Interop;
 using Windows.Win32;
 using Wpf.Ui.Controls;
 
@@ -67,12 +68,23 @@ public class TitleBar : ContentControl, IWindowProcedure
             nameof(CanMaximize),
             typeof(bool),
             typeof(TitleBar),
-            new PropertyMetadata(BooleanBoxes.TrueBox));
+            new PropertyMetadata(BooleanBoxes.TrueBox, HandleCanMaximizePropertyChanged));
 
     public bool CanMaximize
     {
         get => (bool)this.GetValue(CanMaximizeProperty);
         set => this.SetValue(CanMaximizeProperty, BooleanBoxes.Box(value));
+    }
+
+    private static void HandleCanMaximizePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is not TitleBar titleBar || titleBar._window is null) return;
+
+        var hwnd = new WindowInteropHelper(titleBar._window).Handle;
+        if (hwnd != IntPtr.Zero)
+        {
+            WindowBehavior.ApplyCanMaximize(hwnd, (bool)e.NewValue);
+        }
     }
 
     #endregion
@@ -146,8 +158,8 @@ public class TitleBar : ContentControl, IWindowProcedure
     #endregion
 
     // ReSharper disable once CollectionNeverQueried.Local
-    private readonly CompositeDisposable _listeners = new();
-    private readonly List<UIElement> _interactiveElements = new();
+    private readonly CompositeDisposable _listeners = [];
+    private readonly List<UIElement> _interactiveElements = [];
     private Window? _window;
 
     public Window Window
@@ -155,7 +167,7 @@ public class TitleBar : ContentControl, IWindowProcedure
 
     internal TitleBarIcon? TitleBarIcon { get; set; }
 
-    internal HashSet<TitleBarButton> TitleBarButtons { get; } = new();
+    internal HashSet<TitleBarButton> TitleBarButtons { get; } = [];
 
     public TitleBar()
     {
@@ -197,6 +209,12 @@ public class TitleBar : ContentControl, IWindowProcedure
         if (DesignFeatures.IsInDesignMode) return;
 
         this._listeners.Add(InteropHelper.RegisterWndProc(this));
+
+        var hwnd = new WindowInteropHelper(this.Window).Handle;
+        if (hwnd != IntPtr.Zero)
+        {
+            WindowBehavior.ApplyCanMaximize(hwnd, this.CanMaximize);
+        }
     }
 
     protected virtual void OnUnloaded(object sender, RoutedEventArgs e)

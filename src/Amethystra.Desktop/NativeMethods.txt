@@ -1,2 +1,5 @@
-﻿GetWindowPlacement
+﻿GetWindowLong
+SetWindowLong
+GetWindowPlacement
 SetWindowPlacement
+WINDOW_STYLE
