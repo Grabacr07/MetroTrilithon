@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using R3;
 
 namespace Amethystra.Mvvm;
@@ -33,11 +34,30 @@ public abstract class ViewModelBase : IDisposable
 
 public static class ViewModelExtensions
 {
-    extension(IDisposable disposable)
+    extension<TDisposable>(TDisposable disposable)
+        where TDisposable : IDisposable
     {
-        public void AddTo(ViewModelBase vm)
+        public TDisposable AddTo(ViewModelBase vm)
         {
             vm.Add(disposable);
+            return disposable;
+        }
+    }
+
+    extension<T>(ReactiveCommand<T> command)
+    {
+        public ReactiveCommand<T> SubscribeWith(ViewModelBase vm, Action<T> onNext)
+        {
+            vm.Add(command);
+            command.Subscribe(onNext).AddTo(vm);
+            return command;
+        }
+
+        public ReactiveCommand<T> SubscribeWith(ViewModelBase vm, Func<T, CancellationToken, ValueTask> onNextAsync, AwaitOperation awaitOperation = AwaitOperation.Sequential)
+        {
+            vm.Add(command);
+            command.SubscribeAwait(onNextAsync, awaitOperation).AddTo(vm);
+            return command;
         }
     }
 }
