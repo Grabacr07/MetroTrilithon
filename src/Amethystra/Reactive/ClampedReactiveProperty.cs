@@ -1,19 +1,20 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+using System;
 using System.ComponentModel;
-using System.Linq;
-using System.Reactive.Linq;
-using System.Threading.Tasks;
-using Reactive.Bindings;
+using R3;
 
 namespace Amethystra.Reactive;
 
-public sealed class ClampedReactiveProperty : IReactiveProperty<int>
+/// <summary>
+/// <see cref="ReactiveProperty{T}"/> に値の範囲クランプを適用するラッパーです。
+/// </summary>
+public sealed class ClampedReactiveProperty : INotifyPropertyChanged, IDisposable
 {
-    private readonly IReactiveProperty<int> _inner;
+    private readonly ReactiveProperty<int> _inner;
     private readonly int _min;
     private readonly int _max;
+    private readonly IDisposable _propertyChangedSubscription;
+
+    private event PropertyChangedEventHandler? _propertyChanged;
 
     public int Value
     {
@@ -21,78 +22,28 @@ public sealed class ClampedReactiveProperty : IReactiveProperty<int>
         set => this._inner.Value = Math.Clamp(value, this._min, this._max);
     }
 
-    object IReadOnlyReactiveProperty.Value
-        => this.Value;
-
-    object? IReactiveProperty.Value
-    {
-        get => this.Value;
-        set
-        {
-            if (value is null)
-            {
-                this.Value = this._min;
-                return;
-            }
-
-            this.Value = value switch
-            {
-                int x => x,
-                _ => Convert.ToInt32(value),
-            };
-        }
-    }
-
-    public bool HasErrors
-        => this._inner.HasErrors;
-
-    public ClampedReactiveProperty(IReactiveProperty<int> inner, int min, int max)
-    {
-        ArgumentNullException.ThrowIfNull(inner);
-        this._inner = inner;
-        this._min = min;
-        this._max = max;
-    }
-
-    public void ForceNotify()
-        => this._inner.ForceNotify();
-
-    public IDisposable Subscribe(IObserver<int> observer)
-        => this._inner.Subscribe(observer);
-
-    public IObservable<bool> ObserveHasErrors
-        => this._inner.ObserveHasErrors;
-
-    public IObservable<IEnumerable?> ObserveErrorChanged
-        => this._inner.ObserveErrorChanged;
+    public Observable<int> Changed
+        => this._inner;
 
     public event PropertyChangedEventHandler? PropertyChanged
     {
-        add
-        {
-            if (this._inner is INotifyPropertyChanged n) n.PropertyChanged += value;
-        }
-        remove
-        {
-            if (this._inner is INotifyPropertyChanged n) n.PropertyChanged -= value;
-        }
+        add => this._propertyChanged += value;
+        remove => this._propertyChanged -= value;
     }
 
-    public event EventHandler<DataErrorsChangedEventArgs>? ErrorsChanged
+    public ClampedReactiveProperty(int initialValue, int min, int max)
     {
-        add
-        {
-            if (this._inner is INotifyDataErrorInfo e) e.ErrorsChanged += value;
-        }
-        remove
-        {
-            if (this._inner is INotifyDataErrorInfo e) e.ErrorsChanged -= value;
-        }
+        this._min = min;
+        this._max = max;
+        this._inner = new ReactiveProperty<int>(Math.Clamp(initialValue, min, max));
+        this._propertyChangedSubscription = this._inner
+            .Skip(1)
+            .Subscribe(_ => this._propertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(this.Value))));
     }
-
-    public IEnumerable GetErrors(string? propertyName)
-        => this._inner.GetErrors(propertyName);
 
     public void Dispose()
-        => this._inner.Dispose();
+    {
+        this._propertyChangedSubscription.Dispose();
+        this._inner.Dispose();
+    }
 }

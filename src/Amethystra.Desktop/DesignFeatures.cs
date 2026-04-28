@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using R3;
 
 namespace Amethystra;
 
@@ -17,7 +17,7 @@ public static class DesignFeatures
         => false;
 #endif
 
-    public static IObservable<T> StopIfInDesignMode<T>(this IObservable<T> source)
+    public static Observable<T> StopIfInDesignMode<T>(this Observable<T> source)
 #if DEBUG
         => source.Where(_ => IsInDesignMode == false);
 #else

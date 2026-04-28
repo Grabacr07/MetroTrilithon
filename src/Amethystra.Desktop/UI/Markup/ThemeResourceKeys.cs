@@ -1,4 +1,4 @@
-﻿namespace Amethystra.UI.Markup;
+namespace Amethystra.UI.Markup;
 
 public static partial class ThemeResourceKeys
 {

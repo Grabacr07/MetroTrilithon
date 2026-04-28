@@ -1,10 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Threading.Tasks;
-using Livet.EventListeners;
+using R3;
 
 namespace Amethystra.Mvvm;
 
@@ -20,10 +18,13 @@ public static class PropertyChangedExtensions
         var getter = PropertyAccessor<TTarget>.Getter(propertyExpression, out var propertyName);
         if (immediately) action(getter(source));
 
-        return new PropertyChangedEventListener(source)
+        void Handler(object? sender, PropertyChangedEventArgs e)
         {
-            { propertyName, (_, _) => action(getter(source)) },
-        };
+            if (e.PropertyName == propertyName) action(getter(source));
+        }
+
+        source.PropertyChanged += Handler;
+        return Disposable.Create(() => source.PropertyChanged -= Handler);
     }
 
     private static class PropertyAccessor<T>

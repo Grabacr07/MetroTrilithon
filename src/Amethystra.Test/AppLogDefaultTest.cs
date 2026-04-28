@@ -1,4 +1,4 @@
-﻿using Amethystra.Diagnostics;
+using Amethystra.Diagnostics;
 
 namespace Amethystra.Test;
 

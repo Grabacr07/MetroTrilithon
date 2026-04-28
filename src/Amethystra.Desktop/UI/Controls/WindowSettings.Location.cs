@@ -1,13 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using System.Windows;
 using Amethystra.Disposables;
-using Reactive.Bindings;
-using Reactive.Bindings.Extensions;
-using Reactive.Bindings.TinyLinq;
+using R3;
 
 namespace Amethystra.UI.Controls;
 
@@ -18,15 +15,15 @@ public static partial class WindowSettings
     public static readonly DependencyProperty LocationProperty
         = DependencyProperty.RegisterAttached(
             nameof(LocationProperty).GetPropertyName(),
-            typeof(IReactiveProperty<Point?>),
+            typeof(ReactiveProperty<Point?>),
             typeof(WindowSettings),
             new PropertyMetadata(null, HandleLocationPropertyChanged));
 
-    public static void SetLocation(Window element, IReactiveProperty<Point> value)
+    public static void SetLocation(Window element, ReactiveProperty<Point?> value)
         => element.SetValue(LocationProperty, value);
 
-    public static IReactiveProperty<Point?> GetLocation(Window element)
-        => (IReactiveProperty<Point?>)element.GetValue(LocationProperty);
+    public static ReactiveProperty<Point?> GetLocation(Window element)
+        => (ReactiveProperty<Point?>)element.GetValue(LocationProperty);
 
     private static void HandleLocationPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
@@ -46,11 +43,11 @@ public static partial class WindowSettings
                 Location.Listeners.Add(window, listener = new SerialDisposable());
             }
 
-            if (e.NewValue is IReactiveProperty<Point?> property)
+            if (e.NewValue is ReactiveProperty<Point?> property)
             {
                 listener.Disposable = property
                     .Where(_ => ignoreLocationChanged == false)
-                    .ObserveOnUIDispatcher()
+                    .ObserveOnCurrentSynchronizationContext()
                     .Subscribe(x => Location.Set(window, x));
             }
             else

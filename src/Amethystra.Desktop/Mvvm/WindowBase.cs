@@ -1,28 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
+using System;
 using System.ComponentModel;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Windows;
-using Livet;
-using Livet.Messaging;
-using Livet.Messaging.Windows;
-using Reactive.Bindings;
+using Amethystra.UI;
+using R3;
 
 namespace Amethystra.Mvvm;
 
-public abstract class WindowBase : ViewModel
+public abstract class WindowBase : ViewModelBase
 {
-    public const string WindowActionMessageKey = nameof(WindowActionMessageKey);
+    public ReactiveProperty<string> Title { get; } = new();
 
-    public IReactiveProperty<string> Title { get; }
-        = new ReactiveProperty<string>();
+    public ReactiveProperty<bool> CanClose { get; } = new();
 
-    public IReactiveProperty<bool> CanClose { get; }
-        = new ReactiveProperty<bool>();
-
-    public IReactiveProperty<bool> IsClosed { get; }
-        = new ReactiveProperty<bool>();
+    public ReactiveProperty<bool> IsClosed { get; } = new();
 
     /// <summary>
     /// <see cref="InitializeCore"/> メソッドが呼ばれたかどうか (通常、これはアタッチされたウィンドウの <see cref="Window.ContentRendered"/> イベントによって呼び出されます) を示す値を取得します。
@@ -33,8 +23,12 @@ public abstract class WindowBase : ViewModel
 
     public WindowState WindowState { get; set; }
 
+    public event Action? CloseRequested;
+
+    public event Action? ActivateRequested;
+
     /// <summary>
-    /// このメソッドは、アタッチされたウィンドウで <see cref="Window.ContentRendered"/> イベントが発生したときに、Livet インフラストラクチャによって呼び出されます。
+    /// このメソッドは、アタッチされたウィンドウで <see cref="Window.ContentRendered"/> イベントが発生したときに呼び出されます。
     /// </summary>
     [EditorBrowsable(EditorBrowsableState.Never)]
     public void Initialize()
@@ -55,7 +49,7 @@ public abstract class WindowBase : ViewModel
     }
 
     /// <summary>
-    /// このメソッドは、アタッチされたウィンドウで <see cref="Window.Closing"/> イベントがキャンセルされたときに、Livet インフラストラクチャによって呼び出されます。
+    /// このメソッドは、アタッチされたウィンドウで <see cref="Window.Closing"/> イベントがキャンセルされたときに呼び出されます。
     /// </summary>
     [EditorBrowsable(EditorBrowsableState.Never)]
     public void CloseCanceledCallback()
@@ -64,28 +58,22 @@ public abstract class WindowBase : ViewModel
     }
 
     /// <summary>
-    /// 派生クラスでオーバーライドされると、アタッチされたウィンドウで <see cref="Window.Closing"/> イベントがキャンセルされたときに <see cref="Livet.Behaviors.WindowCloseCancelBehavior"/> によって呼び出されるコールバック処理を実行します。
+    /// 派生クラスでオーバーライドされると、<see cref="Window.Closing"/> キャンセル時のコールバック処理を実行します。
     /// </summary>
     protected virtual void CloseCanceledCallbackCore()
     {
     }
 
-
     public virtual void Activate()
     {
-        if (this.WindowState == WindowState.Minimized)
-        {
-            this.SendWindowAction(WindowAction.Normal);
-        }
-
-        this.SendWindowAction(WindowAction.Active);
+        this.ActivateRequested?.Invoke();
     }
 
     public virtual void Close()
     {
         if (this.IsClosed.Value) return;
 
-        this.SendWindowAction(WindowAction.Close);
+        this.CloseRequested?.Invoke();
     }
 
     protected override void Dispose(bool disposing)
@@ -96,19 +84,6 @@ public abstract class WindowBase : ViewModel
         base.Dispose(disposing);
     }
 
-    protected void SendWindowAction(WindowAction action)
-    {
-        this.Messenger.Raise(new WindowActionMessage(action, WindowActionMessageKey));
-    }
-
-    protected void Transition(ViewModel viewModel, Type windowType, TransitionMode mode, bool isOwned)
-    {
-        var message = new TransitionMessage(windowType, viewModel, mode, isOwned ? "Window.Transition.Child" : "Window.Transition");
-        this.Messenger.Raise(message);
-    }
-
-    protected void InvokeOnUIDispatcher(Action action)
-    {
-        DispatcherHelper.UIDispatcher.BeginInvoke(action);
-    }
+    protected static void InvokeOnUIDispatcher(Action action)
+        => UIDispatcher.Instance.BeginInvoke(action);
 }

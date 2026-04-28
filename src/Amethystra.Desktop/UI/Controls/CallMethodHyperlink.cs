@@ -1,17 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Documents;
-using Livet.Behaviors;
 
 namespace Amethystra.UI.Controls;
 
 public class CallMethodHyperlink : Hyperlink
 {
-    private readonly MethodBinder _binder = new();
-    private readonly MethodBinderWithArgument _binderWithArgument = new();
     private bool _hasParameter;
 
     #region MethodTarget dependency property
@@ -80,13 +74,14 @@ public class CallMethodHyperlink : Hyperlink
         var target = this.MethodTarget ?? this.DataContext;
         if (target == null) return;
 
-        if (this._hasParameter)
-        {
-            this._binderWithArgument.Invoke(target, this.MethodName, this.MethodParameter);
-        }
-        else
-        {
-            this._binder.Invoke(target, this.MethodName);
-        }
+        InvokeMethod(target, this.MethodName, this._hasParameter ? this.MethodParameter : null, this._hasParameter);
+    }
+
+    private static void InvokeMethod(object target, string methodName, object? parameter, bool hasParameter)
+    {
+        var method = target.GetType().GetMethod(methodName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+        if (method == null) return;
+
+        method.Invoke(target, hasParameter ? [parameter] : null);
     }
 }

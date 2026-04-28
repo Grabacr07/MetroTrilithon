@@ -1,17 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Livet;
+using System;
 
 namespace Amethystra.Mvvm;
 
 public static class ViewModelExtensions
 {
     /// <summary>
-    /// <see cref="IDisposable"/> オブジェクトを、指定した <see cref="ViewModel"/> の <see cref="ViewModel.CompositeDisposable"/> に追加します。
+    /// <see cref="IDisposable"/> オブジェクトを、指定した <see cref="ViewModelBase"/> の <see cref="ViewModelBase.CompositeDisposable"/> に追加します。
     /// </summary>
-    public static T AddTo<T>(this T disposable, ViewModel? vm)
+    public static T AddTo<T>(this T disposable, ViewModelBase? vm)
         where T : IDisposable
     {
         if (vm == null)

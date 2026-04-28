@@ -1,9 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using Livet;
-using Reactive.Bindings;
+using R3;
 
 namespace Amethystra.Mvvm;
 
@@ -18,20 +16,20 @@ public static class DisplayViewModel
 
 public interface IHaveDisplayName
 {
-    IReadOnlyReactiveProperty<string> Display { get; }
+    ReadOnlyReactiveProperty<string> Display { get; }
 }
 
-public class DisplayViewModel<T>(T? value, string display) : ViewModel, IHaveDisplayName
+public class DisplayViewModel<T>(T? value, string display) : ViewModelBase, IHaveDisplayName
 {
     private readonly ReactiveProperty<T?> _value = new(value);
     private readonly ReactiveProperty<string> _display = new(display);
 
-    public IReadOnlyReactiveProperty<T?> Value
+    public ReadOnlyReactiveProperty<T?> Value
         => this._value;
 
-    public IReadOnlyReactiveProperty<string> Display
+    public ReadOnlyReactiveProperty<string> Display
         => this._display;
 
     public override string ToString()
-        => this.Display.Value;
+        => this.Display.CurrentValue;
 }

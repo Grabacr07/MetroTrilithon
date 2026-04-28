@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System;
 using System.Windows;
-using Livet.Messaging;
 
 namespace Amethystra.UI.Interactivity;
 
-public class FolderBrowserDialogMessage : ResponsiveInteractionMessage<string?>
+public class FolderBrowserDialogMessage : Freezable
 {
     #region AutoUpgradeEnabled dependency property
 
@@ -111,17 +107,8 @@ public class FolderBrowserDialogMessage : ResponsiveInteractionMessage<string?>
 
     #endregion
 
-    public FolderBrowserDialogMessage()
-    {
-    }
-
-    public FolderBrowserDialogMessage(string messageKey)
-        : base(messageKey)
-    {
-    }
-
     protected override Freezable CreateInstanceCore()
-        => new FolderBrowserDialogMessage(this.MessageKey)
+        => new FolderBrowserDialogMessage
         {
             AutoUpgradeEnabled = this.AutoUpgradeEnabled,
             Description = this.Description,

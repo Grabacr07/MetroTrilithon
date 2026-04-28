@@ -1,4 +1,4 @@
-﻿# 🟪 Amethystra
+# 🟪 Amethystra
 
 [@Grabacr07](https://github.com/Grabacr07)'s personal utility suite.
 
@@ -7,6 +7,5 @@
 
 ## Dependencies
 
-* [Livet](https://github.com/runceel/Livet)
-* [ReactiveProperty](https://github.com/runceel/ReactiveProperty)
+* [R3](https://github.com/Cysharp/R3)
 * [WPF-UI](https://github.com/lepoco/wpfui)

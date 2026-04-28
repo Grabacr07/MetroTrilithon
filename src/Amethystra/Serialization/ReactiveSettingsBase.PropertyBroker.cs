@@ -1,67 +1,85 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reactive.Linq;
 using System.Reflection;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using Reactive.Bindings;
+using R3;
 
 namespace Amethystra.Serialization;
 
 partial class ReactiveSettingsBase
 {
-    private class ReactivePropertyBroker : IDisposable
+    private interface IPropertyBroker : IDisposable
     {
-        private readonly IDisposable _listener;
+        string SerializedPropertyName { get; }
 
-        public string SerializedPropertyName { get; }
+        Type ValueType { get; }
 
-        public Type ValueType { get; }
+        object? Value { get; set; }
 
-        public IReactiveProperty Property { get; }
+        object? DefaultValue { get; }
+    }
 
-        public object? DefaultValue { get; }
+    private sealed class ReactivePropertyBroker<T>(
+        string serializedPropertyName,
+        ReactiveProperty<T> property,
+        IDisposable listener)
+        : IPropertyBroker
+    {
+        public string SerializedPropertyName { get; } = serializedPropertyName;
 
-        private ReactivePropertyBroker(object propertyOwner, PropertyInfo propertyInfo, MethodInfo listenerMethodInfo)
+        public Type ValueType
+            => typeof(T);
+
+        public object? DefaultValue { get; } = property.Value;
+
+        object? IPropertyBroker.Value
         {
-            var propertyName = propertyInfo.Name;
-            this.SerializedPropertyName = propertyInfo.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name ?? propertyInfo.Name;
-            this.ValueType = propertyInfo.PropertyType.GetGenericArguments()[0];
-            this.Property = propertyInfo.GetValue(propertyOwner) as IReactiveProperty
-                ?? throw new InvalidOperationException($"Property '{propertyInfo.Name}' not found");
-            this.DefaultValue = this.Property.Value;
-
-            this._listener = listenerMethodInfo
-                    .MakeGenericMethod(this.ValueType)
-                    .Invoke(propertyOwner, [this.Property, propertyName]) as IDisposable
-                ?? throw new InvalidOperationException($"Method '{listenerMethodInfo.Name}' invoked failed");
+            get => property.Value;
+            set => property.Value = value is T typed ? typed : (T)Convert.ChangeType(value, typeof(T))!;
         }
 
         void IDisposable.Dispose()
-            => this._listener.Dispose();
-
-        public static IEnumerable<ReactivePropertyBroker> Enumerate(ReactiveSettingsBase instance)
-        {
-            var registerMethodInfo = typeof(ReactiveSettingsBase).GetMethod(nameof(RegisterPropertyChanged), BindingFlags.Instance | BindingFlags.NonPublic)
-                ?? throw new InvalidOperationException($"Method not found: {nameof(RegisterPropertyChanged)}");
-
-            return instance
-                .GetType()
-                .GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                .Where(static prop =>
-                    prop.PropertyType.IsGenericType &&
-                    prop.PropertyType.GetGenericTypeDefinition() == typeof(IReactiveProperty<>))
-                .Select(x => new ReactivePropertyBroker(instance, x, registerMethodInfo));
-        }
+            => listener.Dispose();
     }
 
-    private IDisposable RegisterPropertyChanged<T>(IReactiveProperty<T> property, string propertyName)
+    private static IEnumerable<IPropertyBroker> EnumerateBrokers(ReactiveSettingsBase instance)
+    {
+        var registerMethodInfo = typeof(ReactiveSettingsBase)
+                .GetMethod(nameof(RegisterPropertyChanged), BindingFlags.Instance | BindingFlags.NonPublic)
+            ?? throw new InvalidOperationException($"Method not found: {nameof(RegisterPropertyChanged)}");
+
+        return instance
+            .GetType()
+            .GetProperties(BindingFlags.Instance | BindingFlags.Public)
+            .Where(static prop =>
+                prop.PropertyType.IsGenericType &&
+                prop.PropertyType.GetGenericTypeDefinition() == typeof(ReactiveProperty<>))
+            .Select(prop =>
+            {
+                var valueType = prop.PropertyType.GetGenericArguments()[0];
+                var serializedName = prop.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name ?? prop.Name;
+                var property = prop.GetValue(instance)
+                    ?? throw new InvalidOperationException($"Property '{prop.Name}' is null");
+
+                var listener = (IDisposable)(registerMethodInfo
+                        .MakeGenericMethod(valueType)
+                        .Invoke(instance, [property, prop.Name])
+                    ?? throw new InvalidOperationException($"Failed to register '{prop.Name}'"));
+
+                return (IPropertyBroker)Activator.CreateInstance(
+                    typeof(ReactivePropertyBroker<>).MakeGenericType(valueType),
+                    serializedName, property, listener)!;
+            });
+    }
+
+    private IDisposable RegisterPropertyChanged<T>(ReactiveProperty<T> property, string propertyName)
         => property
             .Where(_ => this._ignoreChangesFromLoad == false)
             .Subscribe(newValue =>
             {
-                Log.Debug("🔔PropertyChanged", new() { propertyName, newValue, });
+                Log.Debug("🔔PropertyChanged", new() { propertyName, newValue });
                 if (this.AutoSave) this._save.OnNext(SaveReason.PropertyChanged);
             });
 }

@@ -1,21 +1,20 @@
-﻿using System;
-using System.Reactive.Linq;
-using System.Reactive.Subjects;
+using System;
 using System.Runtime.CompilerServices;
 using Amethystra.Diagnostics;
 using Amethystra.Disposables;
+using R3;
 
 namespace Amethystra.Synchronization;
 
 public sealed class SuspensionGate : IDisposable
 {
-    private readonly BehaviorSubject<int> _count = new(0);
+    private readonly ReactiveProperty<int> _count = new(0);
     private readonly RefCountGate _gate;
 
     public SuspensionGate(Action? onResumed = null)
-        => this._gate = new RefCountGate(this._count.OnNext, onResumed);
+        => this._gate = new RefCountGate(count => this._count.Value = count, onResumed);
 
-    public IObservable<bool> IsSuspended
+    public Observable<bool> IsSuspended
         => this._count
             .Select(static x => x > 0)
             .DistinctUntilChanged();
@@ -29,16 +28,16 @@ public sealed class SuspensionGate : IDisposable
 
 public static class SuspensionGateExtensions
 {
-    public static IObservable<T> WhenNotSuspended<T>(
-        this IObservable<T> source,
+    public static Observable<T> WhenNotSuspended<T>(
+        this Observable<T> source,
         SuspensionGate gate)
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(gate);
 
         return source
-            .WithLatestFrom(gate.IsSuspended)
-            .Where(static x => x.Second == false)
-            .Select(static x => x.First);
+            .WithLatestFrom(gate.IsSuspended, static (item, isSuspended) => (item, isSuspended))
+            .Where(static x => x.isSuspended == false)
+            .Select(static x => x.item);
     }
 }

@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Reactive.Disposables;
 using System.Runtime.CompilerServices;
+using R3;
 
 namespace Amethystra.Diagnostics;
 

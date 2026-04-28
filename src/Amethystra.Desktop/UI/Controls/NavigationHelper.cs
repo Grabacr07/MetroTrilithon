@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.Xaml.Behaviors;
+using R3;
 using Wpf.Ui.Controls;
 
 namespace Amethystra.UI.Controls;
@@ -40,17 +40,21 @@ public class NavigationHelper
             .FirstOrDefault();
         if (navigation == null || _knownItems.Add(navigation) == false) return;
 
-        Observable.FromEvent<TypedEventHandler<NavigationView, NavigatedEventArgs>, NavigatedEventArgs>(
-                handler => (_, args) => handler(args),
-                handler => navigation.Navigated += handler,
-                handler => navigation.Navigated -= handler)
-            .Zip(Observable.FromEvent<TypedEventHandler<NavigationView, RoutedEventArgs>, RoutedEventArgs>(
-                handler => (_, args) => handler(args),
-                handler => navigation.SelectionChanged += handler,
-                handler => navigation.SelectionChanged -= handler))
-            .Subscribe(args =>
+        var navigated = Observable.FromEvent<TypedEventHandler<NavigationView, NavigatedEventArgs>, NavigatedEventArgs>(
+            handler => (_, args) => handler(args),
+            h => navigation.Navigated += h,
+            h => navigation.Navigated -= h);
+
+        var selectionChanged = Observable.FromEvent<TypedEventHandler<NavigationView, RoutedEventArgs>, RoutedEventArgs>(
+            handler => (_, args) => handler(args),
+            h => navigation.SelectionChanged += h,
+            h => navigation.SelectionChanged -= h);
+
+        navigated
+            .Zip(selectionChanged, static (nav, sel) => (nav, sel))
+            .Subscribe(static args =>
             {
-                if (args is { First.Page: FrameworkElement element, Second.Source: NavigationView { SelectedItem: NavigationViewItem selected} })
+                if (args is { nav.Page: FrameworkElement element, sel.Source: NavigationView { SelectedItem: NavigationViewItem selected } })
                 {
                     element.DataContext = GetPropagationContext(selected);
                 }

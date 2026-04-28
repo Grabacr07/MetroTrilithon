@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Diagnostics;
-using System.Reactive.Disposables;
 using Amethystra.Diagnostics;
+using R3;
 
 namespace Amethystra.Disposables;
 

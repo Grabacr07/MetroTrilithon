@@ -1,11 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reactive;
-using System.Reactive.Concurrency;
-using System.Reactive.Linq;
-using System.Reactive.Subjects;
-using System.Reactive.Threading.Tasks;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -13,14 +8,13 @@ using Amethystra.Diagnostics;
 using Amethystra.Disposables;
 using Mio;
 using Mio.Destructive;
-using Reactive.Bindings;
-using Reactive.Bindings.Extensions;
+using R3;
 
 namespace Amethystra.Serialization;
 
-/// <summary>  
-/// Supports reading and writing settings values exposed by the derived type as <see cref="IReactiveProperty{T}"/>  
-/// in JSON format.  
+/// <summary>
+/// Supports reading and writing settings values exposed by the derived type as <see cref="ReactiveProperty{T}"/>
+/// in JSON format.
 /// </summary>
 [GenerateLogger]
 public abstract partial class ReactiveSettingsBase : IDisposable
@@ -47,7 +41,7 @@ public abstract partial class ReactiveSettingsBase : IDisposable
 
     private readonly FilePath _settingsFilePath;
     private readonly string _settingsSectionName;
-    private readonly IReadOnlyCollection<ReactivePropertyBroker> _propertyBrokers;
+    private readonly IReadOnlyCollection<IPropertyBroker> _propertyBrokers;
     private readonly ReactiveProperty<bool> _isInitialized = new();
     private readonly Subject<LoadReason> _load = new();
     private readonly Subject<SaveReason> _save = new();
@@ -76,19 +70,21 @@ public abstract partial class ReactiveSettingsBase : IDisposable
     protected virtual TimeSpan SelfChangeDuration
         => TimeSpan.FromMilliseconds(1200);
 
-    public IReadOnlyReactiveProperty<bool> IsInitialized
-        => this._isInitialized;
+    public ReadOnlyReactiveProperty<bool> IsInitialized { get; }
 
     protected ReactiveSettingsBase(FilePath settingsFilePath)
         : this(settingsFilePath, null, null)
     {
     }
 
-    protected ReactiveSettingsBase(FilePath settingsFilePath, string? settingsSectionName, IScheduler? scheduler)
+    protected ReactiveSettingsBase(FilePath settingsFilePath, string? settingsSectionName, TimeProvider? timeProvider)
     {
         this._settingsFilePath = settingsFilePath;
         this._settingsSectionName = settingsSectionName ?? this.GetType().Name;
-        this._propertyBrokers = [.. ReactivePropertyBroker.Enumerate(this)];
+        this._propertyBrokers = [.. EnumerateBrokers(this)];
+        this.IsInitialized = this._isInitialized.ToReadOnlyReactiveProperty();
+
+        var effectiveTimeProvider = timeProvider ?? TimeProvider.System;
 
         var watcher = new FileSystemWatcher(this._settingsFilePath.Parent.AsDestructive().FullName, this._settingsFilePath.Name)
             {
@@ -97,39 +93,42 @@ public abstract partial class ReactiveSettingsBase : IDisposable
             }
             .AddTo(this._disposeGate);
 
+        var fileSystemChanges = Observable
+            .FromEvent<FileSystemEventHandler, FileSystemEventArgs>(
+                handler => (_, args) => handler(args),
+                h => watcher.Changed += h,
+                h => watcher.Changed -= h)
+            .Select(static _ => (reason: LoadReason.FileSystemWatcher, timestamp: DateTimeOffset.UtcNow))
+            .Where(this.IsExternalFileChange)
+            .Select(static x => x.reason);
+
+        // Initialize は即時通過させ、それ以外は仮想プロパティを遅延評価しつつ Debounce する
+        var debouncedLoads = this._load
+            .Where(static x => x != LoadReason.Initialize)
+            .Merge(fileSystemChanges)
+            .Select(x => Observable.Timer(this.LoadThrottlingDuration, effectiveTimeProvider).Select(_ => x))
+            .Switch();
+
         this._load
-            .Merge(Observable
-                .FromEventPattern<FileSystemEventHandler, FileSystemEventArgs>(
-                    h => watcher.Changed += h,
-                    h => watcher.Changed -= h)
-                .Timestamp()
-                // ↑ 発生時刻を付与
-                // ↓ 自分の書き込みから一定時間が経過していれば通す
-                .Where(this.IsExternalFileChange)
-                .Select(static _ => LoadReason.FileSystemWatcher))
-            .Throttle(x => x == LoadReason.Initialize
-                ? Observable.Empty<long>()
-                : Observable.Timer(this.LoadThrottlingDuration))
-            .ObserveOn(scheduler ?? TaskPoolScheduler.Default)
-            .SelectMany(reason => Observable.FromAsync(() => this.LoadSettingsAsync(reason)))
-            .Subscribe()
+            .Where(static x => x == LoadReason.Initialize)
+            .Merge(debouncedLoads)
+            .SubscribeAwait(async (reason, _) => await this.LoadSettingsAsync(reason))
             .AddTo(this._disposeGate);
 
         this._save
-            .Throttle(_ => Observable.Timer(this.SaveThrottlingDuration))
-            .ObserveOn(scheduler ?? TaskPoolScheduler.Default)
-            .SelectMany(reason => Observable.FromAsync(() => this.SaveSettingsAsync(reason)))
-            .Subscribe()
+            .Select(x => Observable.Timer(this.SaveThrottlingDuration, effectiveTimeProvider).Select(_ => x))
+            .Switch()
+            .SubscribeAwait(async (reason, _) => await this.SaveSettingsAsync(reason), AwaitOperation.Drop)
             .AddTo(this._disposeGate);
 
         this._load.OnNext(LoadReason.Initialize);
     }
 
-    public Task EnsureLoadedAsync()
-        => this._isInitialized
-            .Where(x => x)
-            .FirstAsync()
-            .ToTask();
+    public async Task EnsureLoadedAsync(CancellationToken ct = default)
+        => await this._isInitialized
+            .Where(static x => x)
+            .FirstAsync(ct)
+            .ConfigureAwait(false);
 
     public virtual void Load()
     {
@@ -158,16 +157,16 @@ public abstract partial class ReactiveSettingsBase : IDisposable
     /// <summary>
     /// Determines whether the received file system change event is caused by an external source or by the program itself.
     /// </summary>
-    private bool IsExternalFileChange(Timestamped<EventPattern<FileSystemEventArgs>> args)
+    private bool IsExternalFileChange((LoadReason reason, DateTimeOffset timestamp) x)
     {
         var lastSaveMs = Interlocked.Read(ref this._lastSaveTimestamp);
-        var eventMs = args.Timestamp.ToUnixTimeMilliseconds();
+        var eventMs = x.timestamp.ToUnixTimeMilliseconds();
         var deltaMs = eventMs - lastSaveMs;
         var result = deltaMs > this.SelfChangeDuration.TotalMilliseconds;
 
         Log.Debug(
             result ? "✅Pass" : "❌Ignore",
-            new() { { args.Value.EventArgs.FullPath, "path" }, { $"{args.Timestamp:HH:mm:ss.fff}", "timestamp" }, { $"{DateTimeOffset.FromUnixTimeMilliseconds(lastSaveMs):HH:mm:ss.fff}", "lastSave" }, { $"{TimeSpan.FromMilliseconds(deltaMs):g}", "Δ" } });
+            new() { { this._settingsFilePath.Name, "path" }, { $"{x.timestamp:HH:mm:ss.fff}", "timestamp" }, { $"{DateTimeOffset.FromUnixTimeMilliseconds(lastSaveMs):HH:mm:ss.fff}", "lastSave" }, { $"{TimeSpan.FromMilliseconds(deltaMs):g}", "Δ" } });
         return result;
     }
 
@@ -191,13 +190,8 @@ public abstract partial class ReactiveSettingsBase : IDisposable
                 var convertedValue = JsonSerializer.Deserialize(element.GetRawText(), broker.ValueType, _jsonSerializerOptions);
                 using (this._ignoreChangesFromLoad.Enable())
                 {
-                    broker.Property.Value = convertedValue;
+                    broker.Value = convertedValue;
                 }
-            }
-
-            if (reason == LoadReason.Initialize)
-            {
-                this._isInitialized.Value = true;
             }
 
             Log.Info("✅Success", new() { reason, { this._settingsFilePath.AsDestructive().FullName, "fullname" } });
@@ -206,19 +200,26 @@ public abstract partial class ReactiveSettingsBase : IDisposable
         {
             Log.Error(ex, "❌Error", new() { reason, { this._settingsFilePath.AsDestructive().FullName, "fullname" } });
         }
+        finally
+        {
+            if (reason == LoadReason.Initialize)
+            {
+                this._isInitialized.Value = true;
+            }
+        }
     }
 
     /// <summary>
     /// Overwrites the configuration file's section specified by <see cref="_settingsSectionName"/>
-    /// with the current <see cref="IReactiveProperty{T}"/> values, preserving the other sections.
+    /// with the current <see cref="ReactiveProperty{T}"/> values, preserving the other sections.
     /// </summary>
     private async Task SaveSettingsAsync(SaveReason reason)
     {
         try
         {
             var sectionDictionary = this._propertyBrokers
-                .Where(x => Equals(x.Property.Value, x.DefaultValue) == false)
-                .ToDictionary(static x => x.SerializedPropertyName, x => x.Property.Value);
+                .Where(x => Equals(x.Value, x.DefaultValue) == false)
+                .ToDictionary(static x => x.SerializedPropertyName, x => x.Value);
             var outerDictionary = this._settingsFilePath.Exists()
                 ? JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(await this._settingsFilePath.ReadAllTextAsync().ConfigureAwait(false), _jsonSerializerOptions) ?? []
                 : [];

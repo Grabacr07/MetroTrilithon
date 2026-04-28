@@ -1,4 +1,4 @@
-﻿GetWindowLong
+GetWindowLong
 SetWindowLong
 GetWindowPlacement
 SetWindowPlacement

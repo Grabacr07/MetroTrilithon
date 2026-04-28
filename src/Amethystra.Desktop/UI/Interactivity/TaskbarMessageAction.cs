@@ -1,24 +1,45 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Shell;
-using Livet.Behaviors.Messaging;
-using Livet.Messaging;
+using Microsoft.Xaml.Behaviors;
 
 namespace Amethystra.UI.Interactivity;
 
 /// <summary>
-/// <see cref="TaskbarMessage"/> を受信し、アタッチされた <see cref="Window"/> の <see cref="Window.TaskbarItemInfo"/> プロパティを設定する機能を提供します。
+/// <see cref="TaskbarMessage"/> を受け取り、アタッチされた <see cref="Window"/> の <see cref="Window.TaskbarItemInfo"/> プロパティを設定する機能を提供します。
 /// </summary>
-public class TaskbarMessageAction : InteractionMessageAction<Window>
+public class TaskbarMessageAction : Behavior<Window>
 {
-    protected override void InvokeAction(InteractionMessage interactionMessage)
-    {
-        if (interactionMessage is not TaskbarMessage message) return;
+    #region Source dependency property
 
-        var taskbarInfo = this.AssociatedObject.TaskbarItemInfo ?? (this.AssociatedObject.TaskbarItemInfo = new TaskbarItemInfo());
+    public static readonly DependencyProperty SourceProperty
+        = DependencyProperty.Register(
+            nameof(Source),
+            typeof(TaskbarMessage),
+            typeof(TaskbarMessageAction),
+            new PropertyMetadata(null, HandleSourceChanged));
+
+    public TaskbarMessage? Source
+    {
+        get => (TaskbarMessage?)this.GetValue(SourceProperty);
+        set => this.SetValue(SourceProperty, value);
+    }
+
+    private static void HandleSourceChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TaskbarMessageAction action && e.NewValue is TaskbarMessage message)
+        {
+            action.Apply(message);
+        }
+    }
+
+    #endregion
+
+    private void Apply(TaskbarMessage message)
+    {
+        if (this.AssociatedObject == null) return;
+
+        var taskbarInfo = this.AssociatedObject.TaskbarItemInfo
+            ?? (this.AssociatedObject.TaskbarItemInfo = new TaskbarItemInfo());
 
         if (message.ProgressState != null)
         {

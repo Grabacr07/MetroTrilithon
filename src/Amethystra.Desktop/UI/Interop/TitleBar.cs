@@ -1,12 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
 using Windows.Win32;
+using Amethystra.Disposables;
 using Wpf.Ui.Controls;
 
 namespace Amethystra.UI.Interop;
@@ -158,7 +158,7 @@ public class TitleBar : ContentControl, IWindowProcedure
     #endregion
 
     // ReSharper disable once CollectionNeverQueried.Local
-    private readonly CompositeDisposable _listeners = [];
+    private readonly List<IDisposable> _listeners = [];
     private readonly List<UIElement> _interactiveElements = [];
     private Window? _window;
 
@@ -221,6 +221,7 @@ public class TitleBar : ContentControl, IWindowProcedure
     {
         if (DesignFeatures.IsInDesignMode) return;
 
+        this._listeners.Dispose();
         this._listeners.Clear();
     }
 

@@ -1,20 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Shell;
-using Livet.Messaging;
 
 namespace Amethystra.UI.Interactivity;
 
 /// <summary>
-/// <see cref="TaskbarMessageAction"/> 経由で <see cref="Window.TaskbarItemInfo"/> を設定するための相互作用メッセージを表します。
+/// <see cref="TaskbarMessageAction"/> 経由で <see cref="Window.TaskbarItemInfo"/> を設定するためのデータクラスを表します。
 /// </summary>
-public class TaskbarMessage : InteractionMessage
+public class TaskbarMessage : Freezable
 {
-    #region ProgressState Dependency property
+    #region ProgressState dependency property
 
     public static readonly DependencyProperty ProgressStateProperty
         = DependencyProperty.Register(
@@ -31,7 +26,7 @@ public class TaskbarMessage : InteractionMessage
 
     #endregion
 
-    #region ProgressValue Dependency property
+    #region ProgressValue dependency property
 
     public static readonly DependencyProperty ProgressValueProperty
         = DependencyProperty.Register(
@@ -39,7 +34,6 @@ public class TaskbarMessage : InteractionMessage
             typeof(double?),
             typeof(TaskbarMessage),
             new UIPropertyMetadata(null));
-
 
     public double? ProgressValue
     {
@@ -49,7 +43,7 @@ public class TaskbarMessage : InteractionMessage
 
     #endregion
 
-    #region Overlay Dependency property
+    #region Overlay dependency property
 
     public static readonly DependencyProperty OverlayProperty
         = DependencyProperty.Register(
@@ -66,7 +60,7 @@ public class TaskbarMessage : InteractionMessage
 
     #endregion
 
-    #region Description Dependency property
+    #region Description dependency property
 
     public static readonly DependencyProperty DescriptionProperty
         = DependencyProperty.Register(
@@ -83,7 +77,7 @@ public class TaskbarMessage : InteractionMessage
 
     #endregion
 
-    #region ThumbnailClipMargin Dependency property
+    #region ThumbnailClipMargin dependency property
 
     public static readonly DependencyProperty ThumbnailClipMarginProperty
         = DependencyProperty.Register(
@@ -100,7 +94,7 @@ public class TaskbarMessage : InteractionMessage
 
     #endregion
 
-    #region ThumbButtonInfos Dependency property
+    #region ThumbButtonInfos dependency property
 
     public static readonly DependencyProperty ThumbButtonInfosProperty
         = DependencyProperty.Register(
@@ -117,18 +111,8 @@ public class TaskbarMessage : InteractionMessage
 
     #endregion
 
-    public TaskbarMessage()
-    {
-    }
-
-    public TaskbarMessage(string messageKey)
-        : base(messageKey)
-    {
-    }
-
     protected override Freezable CreateInstanceCore()
-    {
-        return new TaskbarMessage(this.MessageKey)
+        => new TaskbarMessage
         {
             ProgressState = this.ProgressState,
             ProgressValue = this.ProgressValue,
@@ -137,5 +121,4 @@ public class TaskbarMessage : InteractionMessage
             ThumbnailClipMargin = this.ThumbnailClipMargin,
             ThumbButtonInfos = this.ThumbButtonInfos,
         };
-    }
 }
