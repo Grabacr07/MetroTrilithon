@@ -46,7 +46,7 @@ public abstract partial class ReactiveSettingsBase : IDisposable
     private readonly Subject<LoadReason> _load = new();
     private readonly Subject<SaveReason> _save = new();
     private readonly ScopedFlag _ignoreChangesFromLoad = new();
-    private readonly DisposeGate<ReactiveSettingsBase> _disposeGate = [];
+    private readonly DisposeGate<ReactiveSettingsBase> _disposeGate = new();
     private long _lastSaveTimestamp;
 
     protected virtual bool AutoSave

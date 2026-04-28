@@ -1,9 +1,6 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Amethystra.Disposables;
 
@@ -40,9 +37,9 @@ public sealed class DisposeGateSlim<T> : IDisposeGate
     }
 }
 
-public sealed class DisposeGate<T> : IDisposeGate, ICollection<IDisposable>
+public sealed class DisposeGate<T> : IDisposeGate
 {
-    private readonly List<IDisposable> _disposables = [];
+    private readonly Stack<IDisposable> _disposables = new();
     private readonly DisposeGateSlim<T> _gate = new();
 
     public bool IsDisposed
@@ -55,12 +52,9 @@ public sealed class DisposeGate<T> : IDisposeGate, ICollection<IDisposable>
     {
         if (this._gate.TryDispose())
         {
-            var snapshot = this._disposables.ToArray();
-            this._disposables.Clear();
-
-            for (var i = snapshot.Length - 1; i >= 0; i--)
+            while (this._disposables.TryPop(out var disposable))
             {
-                snapshot[i].Dispose();
+                disposable.Dispose();
             }
 
             return true;
@@ -72,40 +66,19 @@ public sealed class DisposeGate<T> : IDisposeGate, ICollection<IDisposable>
     public TItem Add<TItem>(TItem item)
         where TItem : IDisposable
     {
-        this.EnsureAccessDisposables().Add(item);
+        this.ThrowIfDisposed();
+        this._disposables.Push(item);
         return item;
     }
+}
 
-    private List<IDisposable> EnsureAccessDisposables()
+public static class DisposeGateExtensions
+{
+    extension<TDisposable>(TDisposable disposable) where TDisposable : IDisposable
     {
-        this.ThrowIfDisposed();
-        return this._disposables;
+        public TDisposable AddTo<TGate>(DisposeGate<TGate> gate)
+        {
+            return gate.Add(disposable);
+        }
     }
-
-    void ICollection<IDisposable>.Add(IDisposable item)
-        => this.EnsureAccessDisposables().Add(item);
-
-    int ICollection<IDisposable>.Count
-        => this.EnsureAccessDisposables().Count;
-
-    bool ICollection<IDisposable>.IsReadOnly
-        => false;
-
-    void ICollection<IDisposable>.Clear()
-        => this.EnsureAccessDisposables().Clear();
-
-    bool ICollection<IDisposable>.Contains(IDisposable item)
-        => this.EnsureAccessDisposables().Contains(item);
-
-    void ICollection<IDisposable>.CopyTo(IDisposable[] array, int arrayIndex)
-        => this.EnsureAccessDisposables().CopyTo(array, arrayIndex);
-
-    bool ICollection<IDisposable>.Remove(IDisposable item)
-        => this.EnsureAccessDisposables().Remove(item);
-
-    IEnumerator<IDisposable> IEnumerable<IDisposable>.GetEnumerator()
-        => this.EnsureAccessDisposables().GetEnumerator();
-
-    IEnumerator IEnumerable.GetEnumerator()
-        => this.EnsureAccessDisposables().GetEnumerator();
 }

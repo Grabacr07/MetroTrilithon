@@ -1,15 +1,18 @@
 using System;
-using System.Collections.Generic;
+using R3;
 
 namespace Amethystra.Mvvm;
 
-public abstract class ViewModelBase : Notifier, IDisposable
+public abstract class ViewModelBase : IDisposable
 {
-    private readonly List<IDisposable> _compositeDisposable = [];
+    private DisposableBag _disposables;
     private bool _disposed;
 
-    public ICollection<IDisposable> CompositeDisposable
-        => this._compositeDisposable;
+    protected ref DisposableBag Disposables
+        => ref this._disposables;
+
+    internal void Add(IDisposable disposable)
+        => this._disposables.Add(disposable);
 
     public void Dispose()
     {
@@ -24,11 +27,17 @@ public abstract class ViewModelBase : Notifier, IDisposable
 
         if (disposing == false) return;
 
-        for (var i = this._compositeDisposable.Count - 1; i >= 0; i--)
-        {
-            this._compositeDisposable[i].Dispose();
-        }
+        this._disposables.Dispose();
+    }
+}
 
-        this._compositeDisposable.Clear();
+public static class ViewModelExtensions
+{
+    extension(IDisposable disposable)
+    {
+        public void AddTo(ViewModelBase vm)
+        {
+            vm.Add(disposable);
+        }
     }
 }

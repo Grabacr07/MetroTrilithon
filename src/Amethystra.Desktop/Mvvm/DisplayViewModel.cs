@@ -16,20 +16,26 @@ public static class DisplayViewModel
 
 public interface IHaveDisplayName
 {
-    ReadOnlyReactiveProperty<string> Display { get; }
+    IReadOnlyBindableReactiveProperty<string> Display { get; }
 }
 
-public class DisplayViewModel<T>(T? value, string display) : ViewModelBase, IHaveDisplayName
+public class DisplayViewModel<T> : ViewModelBase, IHaveDisplayName
 {
-    private readonly ReactiveProperty<T?> _value = new(value);
-    private readonly ReactiveProperty<string> _display = new(display);
+    private readonly BindableReactiveProperty<T?> _value;
+    private readonly BindableReactiveProperty<string> _display;
 
-    public ReadOnlyReactiveProperty<T?> Value
-        => this._value;
+    public IReadOnlyBindableReactiveProperty<T?> Value => this._value;
 
-    public ReadOnlyReactiveProperty<string> Display
-        => this._display;
+    public IReadOnlyBindableReactiveProperty<string> Display => this._display;
+
+    public DisplayViewModel(T? value, string display)
+    {
+        this._value = new(value);
+        this._display = new(display);
+        this._value.AddTo(this);
+        this._display.AddTo(this);
+    }
 
     public override string ToString()
-        => this.Display.CurrentValue;
+        => this._display.Value;
 }

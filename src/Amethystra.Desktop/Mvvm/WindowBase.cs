@@ -8,11 +8,22 @@ namespace Amethystra.Mvvm;
 
 public abstract class WindowBase : ViewModelBase
 {
-    public ReactiveProperty<string> Title { get; } = new();
+    private readonly BindableReactiveProperty<string> _title = new();
+    private readonly BindableReactiveProperty<bool> _canClose = new();
+    private readonly BindableReactiveProperty<bool> _isClosed = new();
 
-    public ReactiveProperty<bool> CanClose { get; } = new();
+    public IBindableReactiveProperty<string> Title => this._title;
 
-    public ReactiveProperty<bool> IsClosed { get; } = new();
+    public IBindableReactiveProperty<bool> CanClose => this._canClose;
+
+    public IReadOnlyBindableReactiveProperty<bool> IsClosed => this._isClosed;
+
+    protected WindowBase()
+    {
+        this._title.AddTo(this);
+        this._canClose.AddTo(this);
+        this._isClosed.AddTo(this);
+    }
 
     /// <summary>
     /// <see cref="InitializeCore"/> メソッドが呼ばれたかどうか (通常、これはアタッチされたウィンドウの <see cref="Window.ContentRendered"/> イベントによって呼び出されます) を示す値を取得します。
@@ -33,7 +44,7 @@ public abstract class WindowBase : ViewModelBase
     [EditorBrowsable(EditorBrowsableState.Never)]
     public void Initialize()
     {
-        if (this.IsClosed.Value) return;
+        if (this._isClosed.Value) return;
 
         this.DialogResult = false;
 
@@ -71,14 +82,14 @@ public abstract class WindowBase : ViewModelBase
 
     public virtual void Close()
     {
-        if (this.IsClosed.Value) return;
+        if (this._isClosed.Value) return;
 
         this.CloseRequested?.Invoke();
     }
 
     protected override void Dispose(bool disposing)
     {
-        this.IsClosed.Value = true;
+        this._isClosed.Value = true;
         this.IsInitialized = false;
 
         base.Dispose(disposing);
