@@ -22,12 +22,12 @@ public class ScrollBarThresholdBehavior : Behavior<ScrollViewer>
             nameof(Horizontal),
             typeof(double),
             typeof(ScrollBarThresholdBehavior),
-            new PropertyMetadata(.0));
+            new PropertyMetadata(DoubleBoxes.ZeroBox));
 
     public double Horizontal
     {
         get => (double)this.GetValue(HorizontalProperty);
-        set => this.SetValue(HorizontalProperty, value);
+        set => this.SetValue(HorizontalProperty, DoubleBoxes.Box(value));
     }
 
     #endregion
@@ -39,12 +39,12 @@ public class ScrollBarThresholdBehavior : Behavior<ScrollViewer>
             nameof(Vertical),
             typeof(double),
             typeof(ScrollBarThresholdBehavior),
-            new PropertyMetadata(.0));
+            new PropertyMetadata(DoubleBoxes.ZeroBox));
 
     public double Vertical
     {
         get => (double)this.GetValue(VerticalProperty);
-        set => this.SetValue(VerticalProperty, value);
+        set => this.SetValue(VerticalProperty, DoubleBoxes.Box(value));
     }
 
     #endregion

@@ -39,6 +39,19 @@ namespace Amethystra.UI.Interactivity;
 ///    |&lt;--Close()---------|&lt;--CloseRequested-----|
 ///    |&lt;--Activate()------|&lt;--ActivateRequested--|
 /// </code>
+/// 
+/// <example>
+/// XAML での使用方法:
+/// <code>
+/// &lt;b:Interaction.Behaviors>
+///     &lt;metro:WindowLifecycleBehavior />
+/// &lt;/b:Interaction.Behaviors>
+/// </code>
+/// または
+/// <code>
+/// metro:WindowLifecycleBehavior.Enabled="True"
+/// </code>
+/// </example>
 /// </remarks>
 [GenerateLogger]
 public partial class WindowLifecycleBehavior : Behavior<Window>

@@ -23,7 +23,7 @@ public static class Click
         => element.SetValue(CallMethodProperty, value);
 
     public static object GetCallMethod(DependencyObject element)
-        => (object)element.GetValue(CallMethodProperty);
+        => element.GetValue(CallMethodProperty);
 
     private static void HandleCallMethodPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
@@ -42,23 +42,16 @@ public static class Click
     #endregion
 }
 
-public class CallMethodInfo
+public class CallMethodInfo(string name, object? parameter, object? target)
 {
-    public string Name { get; set; }
+    public string Name { get; set; } = name;
 
-    public object? Parameter { get; set; }
+    public object? Parameter { get; set; } = parameter;
 
-    public object? Target { get; set; }
+    public object? Target { get; set; } = target;
 
     public CallMethodInfo(string name)
+        : this(name, null, null)
     {
-        this.Name = name;
-    }
-
-    public CallMethodInfo(string name, object? parameter, object? target)
-    {
-        this.Name = name;
-        this.Parameter = parameter;
-        this.Target = target;
     }
 }

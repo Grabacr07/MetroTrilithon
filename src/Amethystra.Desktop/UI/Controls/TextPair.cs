@@ -74,12 +74,12 @@ public class TextPair : System.Windows.Controls.Control
             nameof(SubTextSize),
             typeof(double),
             typeof(TextPair),
-            new PropertyMetadata(.0));
+            new PropertyMetadata(DoubleBoxes.ZeroBox));
 
     public double SubTextSize
     {
         get => (double)this.GetValue(SubTextSizeProperty);
-        set => this.SetValue(SubTextSizeProperty, value);
+        set => this.SetValue(SubTextSizeProperty, DoubleBoxes.Box(value));
     }
 
     #endregion

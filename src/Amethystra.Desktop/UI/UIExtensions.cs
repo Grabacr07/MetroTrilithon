@@ -20,27 +20,30 @@ public static class UIExtensions
                 ? dependencyPropertyName[..dependencyPropertyName.LastIndexOf(_propertyKeyword, StringComparison.Ordinal)]
                 : dependencyPropertyName;
 
-    public static T? FindLogicalAncestor<T>(this DependencyObject? dependencyObject)
-        where T : DependencyObject
+    extension(DependencyObject? dependencyObject)
     {
-        while (dependencyObject != null)
+        public T? FindLogicalAncestor<T>()
+            where T : DependencyObject
         {
-            if (dependencyObject is T ancestor) return ancestor;
-            dependencyObject = LogicalTreeHelper.GetParent(dependencyObject);
+            while (dependencyObject != null)
+            {
+                if (dependencyObject is T ancestor) return ancestor;
+                dependencyObject = LogicalTreeHelper.GetParent(dependencyObject);
+            }
+
+            return null;
         }
 
-        return null;
-    }
-
-    public static T? FindVisualAncestor<T>(this DependencyObject? dependencyObject)
-        where T : DependencyObject
-    {
-        while (dependencyObject != null)
+        public T? FindVisualAncestor<T>()
+            where T : DependencyObject
         {
-            if (dependencyObject is T ancestor) return ancestor;
-            dependencyObject = VisualTreeHelper.GetParent(dependencyObject);
-        }
+            while (dependencyObject != null)
+            {
+                if (dependencyObject is T ancestor) return ancestor;
+                dependencyObject = VisualTreeHelper.GetParent(dependencyObject);
+            }
 
-        return null;
+            return null;
+        }
     }
 }

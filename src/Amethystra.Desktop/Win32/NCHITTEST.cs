@@ -2,7 +2,9 @@
 // ReSharper disable InconsistentNaming
 // ReSharper disable IdentifierTypo
 
+#pragma warning disable IDE0130
 namespace Windows.Win32;
+#pragma warning restore IDE0130
 
 public enum NCHITTEST
 {
