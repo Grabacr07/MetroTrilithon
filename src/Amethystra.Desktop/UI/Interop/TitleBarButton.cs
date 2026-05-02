@@ -30,11 +30,10 @@ public class TitleBarButton : ButtonBase, IWindowProcedure
             .GetValue(null) as DependencyPropertyKey ?? throw new InvalidOperationException("Cannot access to IsPressedPropertyKey");
     }
 
-    private Window? _window;
     private IDisposable? _listener;
 
     protected Window Window
-        => this._window ??= this.GetWindow();
+        => field ??= this.GetWindow();
 
     protected internal TitleBar? TitleBar { get; internal set; }
 
@@ -154,9 +153,6 @@ public class TitleBarButton : ButtonBase, IWindowProcedure
                 return (IntPtr)this.HitTestReturnValue;
 
             case WM.NCHITTEST:
-                this.Leave();
-                break;
-
             case WM.NCMOUSELEAVE:
                 this.Leave();
                 break;

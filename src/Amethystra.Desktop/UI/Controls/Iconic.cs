@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace Amethystra.UI.Controls;
 
@@ -36,8 +37,7 @@ public static class Iconic
         var icon = new TextBlock()
         {
             Text = split[0],
-            FontFamily = new System.Windows.Media.FontFamily("Segoe MDL2 Assets"),
-            Margin = new Thickness(0, 3, 0, 0),
+            FontFamily = new FontFamily("Segoe Fluent Icons"),
         };
         panel.Children.Add(icon);
 

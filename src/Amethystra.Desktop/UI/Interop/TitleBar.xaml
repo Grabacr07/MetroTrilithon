@@ -42,9 +42,9 @@
                             </Grid.ColumnDefinitions>
 
                             <interop:TitleBarIcon Grid.Column="0"
-                                                x:Name="PART_Icon"
-                                                Icon="{TemplateBinding Icon}"
-                                                Action="{TemplateBinding IconAction}" />
+                                                  x:Name="PART_Icon"
+                                                  Icon="{TemplateBinding Icon}"
+                                                  Action="{TemplateBinding IconAction}" />
                             <TextBlock x:Name="Title"
                                        Grid.Column="1"
                                        Text="{TemplateBinding Title}"
@@ -65,9 +65,9 @@
                                         Orientation="Horizontal"
                                         VerticalAlignment="Top">
                                 <interop:MinimizeButton x:Name="PART_MinimizeButton"
-                                                      CanMinimize="{TemplateBinding CanMinimize}" />
+                                                        CanMinimize="{TemplateBinding CanMinimize}" />
                                 <interop:MaximizeButton x:Name="PART_MaximizeButton"
-                                                      CanMaximize="{TemplateBinding CanMaximize}" />
+                                                        CanMaximize="{TemplateBinding CanMaximize}" />
                                 <interop:CloseButton x:Name="PART_CloseButton" />
                             </StackPanel>
                         </Grid>
