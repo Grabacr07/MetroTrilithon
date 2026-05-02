@@ -39,7 +39,7 @@ namespace Amethystra.UI.Interactivity;
 ///    |&lt;--Close()---------|&lt;--CloseRequested-----|
 ///    |&lt;--Activate()------|&lt;--ActivateRequested--|
 /// </code>
-/// 
+///
 /// <example>
 /// XAML での使用方法:
 /// <code>
@@ -47,15 +47,38 @@ namespace Amethystra.UI.Interactivity;
 ///     &lt;metro:WindowLifecycleBehavior />
 /// &lt;/b:Interaction.Behaviors>
 /// </code>
-/// または
-/// <code>
-/// metro:WindowLifecycleBehavior.Enabled="True"
-/// </code>
+/// または <c>WindowFeatures.LifecycleContext</c> 添付プロパティを通じて使用します。
 /// </example>
 /// </remarks>
 [GenerateLogger]
 public partial class WindowLifecycleBehavior : Behavior<Window>
 {
+    #region Context dependency property
+
+    public static readonly DependencyProperty ContextProperty
+        = DependencyProperty.Register(
+            nameof(Context),
+            typeof(object),
+            typeof(WindowLifecycleBehavior),
+            new PropertyMetadata(null, HandleContextPropertyChanged));
+
+    /// <summary>
+    /// ライフサイクルの委譲先 ViewModel を取得または設定します。
+    /// null の場合はアタッチ先ウィンドウの DataContext にフォールバックします。
+    /// </summary>
+    public object? Context
+    {
+        get => this.GetValue(ContextProperty);
+        set => this.SetValue(ContextProperty, value);
+    }
+
+    private static void HandleContextPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is WindowLifecycleBehavior behavior) behavior.RefreshViewModel();
+    }
+
+    #endregion
+
     private readonly Subject<CancelEventArgs> _closingSubject = new();
     private readonly ScopedFlag _skipClosingCheck = new();
     private WindowViewModelBase? _viewModel;
@@ -86,7 +109,7 @@ public partial class WindowLifecycleBehavior : Behavior<Window>
         this.AssociatedObject.Closing += this.HandleClosing;
         this.AssociatedObject.Closed += this.HandleClosed;
 
-        this.UpdateViewModel(this.AssociatedObject.DataContext);
+        this.RefreshViewModel();
     }
 
     protected override void OnDetaching()
@@ -100,7 +123,17 @@ public partial class WindowLifecycleBehavior : Behavior<Window>
     }
 
     private void HandleDataContextChanged(object? sender, DependencyPropertyChangedEventArgs e)
-        => this.UpdateViewModel(e.NewValue);
+    {
+        // Context が明示的に設定されている場合、DataContext の変更は無視する
+        if (this.Context != null) return;
+        this.RefreshViewModel();
+    }
+
+    private void RefreshViewModel()
+    {
+        var context = this.Context ?? this.AssociatedObject?.DataContext;
+        this.UpdateViewModel(context);
+    }
 
     private void UpdateViewModel(object? dataContext)
     {
