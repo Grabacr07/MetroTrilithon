@@ -88,6 +88,11 @@
                 <Setter Property="Opacity"
                         Value="0.33" />
             </MultiTrigger>
+            <Trigger Property="interop:TitleBarToggle.IsChecked"
+                     Value="True">
+                <Setter Property="Background"
+                        Value="{DynamicResource {x:Static markup:ThemeResourceKeys.AccentBrush}}" />
+            </Trigger>
         </Style.Triggers>
     </Style>
 
