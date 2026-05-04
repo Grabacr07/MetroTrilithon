@@ -1,0 +1,26 @@
+<Project>
+
+  <PropertyGroup>
+    <MinVerTagPrefix>v</MinVerTagPrefix>
+    <MinVerDefaultPreReleaseIdentifiers>alpha.0</MinVerDefaultPreReleaseIdentifiers>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MinVer" Version="7.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <Target Name="SetAssemblyVersionFromMinVer"
+          AfterTargets="MinVer"
+          BeforeTargets="GetAssemblyVersion;GenerateAssemblyInfo"
+          Condition="'$(MinVerVersion)' != ''">
+    <PropertyGroup>
+      <_MinVerVersionPrefix>$([System.Text.RegularExpressions.Regex]::Match($(MinVerVersion), '^\d+\.\d+\.\d+').Value)</_MinVerVersionPrefix>
+      <AssemblyVersion Condition="'$(_MinVerVersionPrefix)' != ''">$(_MinVerVersionPrefix).0</AssemblyVersion>
+      <FileVersion Condition="'$(_MinVerVersionPrefix)' != ''">$(_MinVerVersionPrefix).0</FileVersion>
+    </PropertyGroup>
+  </Target>
+
+</Project>
