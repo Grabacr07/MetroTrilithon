@@ -4,9 +4,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Interop;
 using Windows.Win32;
 using Amethystra.Disposables;
+using Amethystra.UI.Converters;
 using Wpf.Ui.Controls;
 
 namespace Amethystra.UI.Interop;
@@ -57,6 +59,55 @@ public class TitleBar : ContentControl, IWindowProcedure
                 titleBar._interactiveElements.Remove(element);
             }
         }
+    }
+
+    #endregion
+
+    #region DimWhenInactive attached property
+
+    private static readonly BooleanToDoubleConverter _dimConverter = new(trueValue: 1.0, falseValue: 0.5);
+
+    public static readonly DependencyProperty DimWhenInactiveProperty
+        = DependencyProperty.RegisterAttached(
+            nameof(DimWhenInactiveProperty).GetPropertyName(),
+            typeof(bool),
+            typeof(TitleBar),
+            new FrameworkPropertyMetadata(BooleanBoxes.FalseBox, HandleDimWhenInactivePropertyChanged));
+
+    public static void SetDimWhenInactive(DependencyObject element, bool value)
+        => element.SetValue(DimWhenInactiveProperty, value);
+
+    public static bool GetDimWhenInactive(DependencyObject element)
+        => (bool)element.GetValue(DimWhenInactiveProperty);
+
+    private static void HandleDimWhenInactivePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is not FrameworkElement element) return;
+
+        if ((bool)e.NewValue)
+        {
+            element.Loaded += ApplyDimBinding;
+            if (element.IsLoaded) ApplyDimBinding(element, null!);
+        }
+        else
+        {
+            element.Loaded -= ApplyDimBinding;
+            BindingOperations.ClearBinding(element, OpacityProperty);
+        }
+    }
+
+    private static void ApplyDimBinding(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement element) return;
+
+        var window = Window.GetWindow(element);
+        if (window == null) return;
+
+        element.SetBinding(OpacityProperty, new Binding(nameof(Window.IsActive))
+        {
+            Source = window,
+            Converter = _dimConverter,
+        });
     }
 
     #endregion

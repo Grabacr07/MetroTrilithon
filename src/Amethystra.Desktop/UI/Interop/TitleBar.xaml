@@ -35,7 +35,8 @@
                           HorizontalAlignment="{TemplateBinding HorizontalAlignment}"
                           VerticalAlignment="{TemplateBinding VerticalAlignment}"
                           SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}">
-                        <Grid Margin="{TemplateBinding Padding}">
+                        <Grid Margin="{TemplateBinding Padding}"
+                              interop:TitleBar.DimWhenInactive="True">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
