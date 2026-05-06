@@ -1,0 +1,207 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+                    xmlns:ctrls="clr-namespace:Amethystra.UI.Controls">
+
+    <!--
+        CardAction の右端アイコンを Segoe Fluent Icons の任意グリフで置き換えられるスタイル。
+        ChevronGlyph 未設定時は WPF-UI デフォルト (SymbolIcon ChevronRight24) を表示する。
+
+        注意: このファイルは URI 経由で独立してロードされるため、BasedOn で WPF-UI の
+        implicit style を参照できない。WPF-UI のセッターをすべて DynamicResource で再定義する。
+    -->
+    <Style x:Key="Style.CardAction.ChevronGlyph"
+           TargetType="{x:Type ui:CardAction}">
+        <Setter Property="FocusVisualStyle"
+                Value="{DynamicResource DefaultControlFocusVisualStyle}" />
+        <Setter Property="Background"
+                Value="{DynamicResource CardBackground}" />
+        <Setter Property="Foreground"
+                Value="{DynamicResource CardForeground}" />
+        <Setter Property="BorderBrush"
+                Value="{DynamicResource CardBorderBrush}" />
+        <Setter Property="BorderThickness"
+                Value="{DynamicResource CardActionBorderThemeThickness}" />
+        <Setter Property="Padding"
+                Value="{DynamicResource CardActionPadding}" />
+        <Setter Property="HorizontalAlignment"
+                Value="Stretch" />
+        <Setter Property="VerticalAlignment"
+                Value="Center" />
+        <Setter Property="HorizontalContentAlignment"
+                Value="Stretch" />
+        <Setter Property="VerticalContentAlignment"
+                Value="Center" />
+        <Setter Property="FontSize"
+                Value="{DynamicResource ControlContentThemeFontSize}" />
+        <Setter Property="FontWeight"
+                Value="Normal" />
+        <Setter Property="Border.CornerRadius"
+                Value="{DynamicResource ControlCornerRadius}" />
+        <Setter Property="SnapsToDevicePixels"
+                Value="True" />
+        <Setter Property="OverridesDefaultStyle"
+                Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ui:CardAction}">
+                    <Border x:Name="ContentBorder"
+                            Width="{TemplateBinding Width}"
+                            Height="{TemplateBinding Height}"
+                            MinWidth="{TemplateBinding MinWidth}"
+                            MinHeight="{TemplateBinding MinHeight}"
+                            Padding="{TemplateBinding Padding}"
+                            HorizontalAlignment="{TemplateBinding HorizontalAlignment}"
+                            VerticalAlignment="{TemplateBinding VerticalAlignment}"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{TemplateBinding Border.CornerRadius}">
+                        <Grid HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <ContentControl x:Name="ControlIcon"
+                                            Grid.Column="0"
+                                            Margin="{DynamicResource CardActionIconMargin}"
+                                            VerticalAlignment="Center"
+                                            Content="{TemplateBinding Icon}"
+                                            Focusable="False"
+                                            FontSize="{DynamicResource CardActionIconSize}"
+                                            Foreground="{TemplateBinding Foreground}"
+                                            KeyboardNavigation.IsTabStop="False" />
+
+                            <ContentPresenter x:Name="ContentPresenter"
+                                              Grid.Column="1"
+                                              VerticalAlignment="Center"
+                                              Content="{TemplateBinding Content}"
+                                              TextElement.Foreground="{TemplateBinding Foreground}" />
+
+                            <!-- ChevronGlyph 未設定時に表示 (デフォルト非表示 → DataTrigger で切り替え) -->
+                            <ui:SymbolIcon x:Name="ChevronIconDefault"
+                                           Grid.Column="2"
+                                           Margin="{DynamicResource CardActionChevronMargin}"
+                                           VerticalAlignment="Center"
+                                           FontSize="{DynamicResource CardActionChevronSize}"
+                                           Symbol="ChevronRight24"
+                                           Visibility="Collapsed" />
+
+                            <!-- ChevronGlyph 設定時に表示 -->
+                            <TextBlock x:Name="ChevronIconCustom"
+                                       Grid.Column="2"
+                                       Margin="{DynamicResource CardActionChevronMargin}"
+                                       VerticalAlignment="Center"
+                                       FontFamily="Segoe Fluent Icons"
+                                       FontSize="{DynamicResource CardActionChevronSize}"
+                                       Foreground="{TemplateBinding Foreground}"
+                                       Text="{Binding Path=(ctrls:CardActionExtensions.ChevronGlyph), RelativeSource={RelativeSource TemplatedParent}}"
+                                       Visibility="Visible" />
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <!-- ChevronGlyph が null → デフォルト SymbolIcon を表示 -->
+                        <Trigger Property="ctrls:CardActionExtensions.ChevronGlyph"
+                                 Value="{x:Null}">
+                            <Setter TargetName="ChevronIconDefault"
+                                    Property="Visibility"
+                                    Value="Visible" />
+                            <Setter TargetName="ChevronIconCustom"
+                                    Property="Visibility"
+                                    Value="Collapsed" />
+                        </Trigger>
+
+                        <Trigger Property="IsMouseOver"
+                                 Value="True">
+                            <Setter Property="Background"
+                                    Value="{DynamicResource CardBackgroundPointerOver}" />
+                            <Setter Property="BorderBrush"
+                                    Value="{DynamicResource ControlElevationBorderBrush}" />
+                            <Setter Property="Foreground"
+                                    Value="{DynamicResource CardForegroundPointerOver}" />
+                        </Trigger>
+
+                        <!-- IsChevronVisible=False → 両アイコンを非表示 (DataTrigger より後ろで優先) -->
+                        <Trigger Property="IsChevronVisible"
+                                 Value="False">
+                            <Setter TargetName="ChevronIconDefault"
+                                    Property="Visibility"
+                                    Value="Collapsed" />
+                            <Setter TargetName="ChevronIconCustom"
+                                    Property="Visibility"
+                                    Value="Collapsed" />
+                        </Trigger>
+
+                        <Trigger Property="IsEnabled"
+                                 Value="False">
+                            <Setter Property="Background"
+                                    Value="{DynamicResource CardBackgroundDisabled}" />
+                            <Setter Property="BorderBrush"
+                                    Value="{DynamicResource CardBorderBrushDisabled}" />
+                            <Setter TargetName="ContentPresenter"
+                                    Property="TextElement.Foreground"
+                                    Value="{DynamicResource CardForegroundDisabled}" />
+                            <Setter TargetName="ControlIcon"
+                                    Property="Foreground"
+                                    Value="{DynamicResource CardForegroundDisabled}" />
+                            <Setter TargetName="ChevronIconDefault"
+                                    Property="Foreground"
+                                    Value="{DynamicResource CardForegroundDisabled}" />
+                            <Setter TargetName="ChevronIconCustom"
+                                    Property="Foreground"
+                                    Value="{DynamicResource CardForegroundDisabled}" />
+                        </Trigger>
+
+                        <Trigger Property="IsPressed"
+                                 Value="True">
+                            <Setter Property="Background"
+                                    Value="{DynamicResource CardBackgroundPressed}" />
+                            <Setter Property="BorderBrush"
+                                    Value="{DynamicResource CardBorderBrushPressed}" />
+                            <Setter TargetName="ContentPresenter"
+                                    Property="TextElement.Foreground"
+                                    Value="{DynamicResource CardForegroundPressed}" />
+                            <Setter TargetName="ControlIcon"
+                                    Property="Foreground"
+                                    Value="{DynamicResource CardForegroundPressed}" />
+                            <Setter TargetName="ChevronIconDefault"
+                                    Property="Foreground"
+                                    Value="{DynamicResource CardForegroundPressed}" />
+                            <Setter TargetName="ChevronIconCustom"
+                                    Property="Foreground"
+                                    Value="{DynamicResource CardForegroundPressed}" />
+                        </Trigger>
+
+                        <Trigger Property="Content"
+                                 Value="{x:Null}">
+                            <Setter TargetName="ControlIcon"
+                                    Property="Margin"
+                                    Value="0" />
+                        </Trigger>
+
+                        <Trigger Property="Content"
+                                 Value="">
+                            <Setter TargetName="ControlIcon"
+                                    Property="Margin"
+                                    Value="0" />
+                        </Trigger>
+
+                        <Trigger Property="Icon"
+                                 Value="{x:Null}">
+                            <Setter TargetName="ControlIcon"
+                                    Property="Margin"
+                                    Value="0" />
+                            <Setter TargetName="ControlIcon"
+                                    Property="Visibility"
+                                    Value="Collapsed" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+</ResourceDictionary>
