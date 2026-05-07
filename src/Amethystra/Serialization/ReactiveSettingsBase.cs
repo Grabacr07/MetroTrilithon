@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Amethystra.Diagnostics;
 using Amethystra.Disposables;
@@ -32,12 +33,14 @@ public abstract partial class ReactiveSettingsBase : IDisposable
         Explicit,
     }
 
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    private static readonly JsonSerializerOptions _defaultJsonSerializerOptions = new()
     {
         WriteIndented = true,
         PropertyNameCaseInsensitive = true,
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
     };
+
+    private readonly JsonSerializerOptions _jsonSerializerOptions;
 
     private readonly FilePath _settingsFilePath;
     private readonly string _settingsSectionName;
@@ -72,13 +75,16 @@ public abstract partial class ReactiveSettingsBase : IDisposable
 
     public ReadOnlyReactiveProperty<bool> IsInitialized { get; }
 
-    protected ReactiveSettingsBase(FilePath settingsFilePath)
-        : this(settingsFilePath, null, null)
+    protected ReactiveSettingsBase(
+        FilePath settingsFilePath,
+        string? settingsSectionName = null,
+        TimeProvider? timeProvider = null,
+        IReadOnlyList<JsonConverter>? converters = null)
     {
-    }
+        this._jsonSerializerOptions = converters is { Count: > 0 }
+            ? BuildJsonSerializerOptions(converters)
+            : _defaultJsonSerializerOptions;
 
-    protected ReactiveSettingsBase(FilePath settingsFilePath, string? settingsSectionName, TimeProvider? timeProvider)
-    {
         this._settingsFilePath = settingsFilePath;
         this._settingsSectionName = settingsSectionName ?? this.GetType().Name;
         this._propertyBrokers = [.. EnumerateBrokers(this)];
@@ -177,17 +183,17 @@ public abstract partial class ReactiveSettingsBase : IDisposable
             if (this._settingsFilePath.Exists() == false) return;
 
             var json = await this._settingsFilePath.ReadAllTextAsync().ConfigureAwait(false);
-            var outerDictionary = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json, _jsonSerializerOptions);
+            var outerDictionary = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json, this._jsonSerializerOptions);
             if (outerDictionary == null || outerDictionary.TryGetValue(this._settingsSectionName, out var sectionElement) == false) return;
 
-            var sectionDictionary = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(sectionElement.GetRawText(), _jsonSerializerOptions);
+            var sectionDictionary = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(sectionElement.GetRawText(), this._jsonSerializerOptions);
             if (sectionDictionary == null) return;
 
             foreach (var broker in this._propertyBrokers)
             {
                 if (sectionDictionary.TryGetValue(broker.SerializedPropertyName, out var element) == false) continue;
 
-                var convertedValue = JsonSerializer.Deserialize(element.GetRawText(), broker.ValueType, _jsonSerializerOptions);
+                var convertedValue = JsonSerializer.Deserialize(element.GetRawText(), broker.ValueType, this._jsonSerializerOptions);
                 using (this._ignoreChangesFromLoad.Enable())
                 {
                     broker.Value = convertedValue;
@@ -221,11 +227,11 @@ public abstract partial class ReactiveSettingsBase : IDisposable
                 .Where(x => Equals(x.Value, x.DefaultValue) == false)
                 .ToDictionary(static x => x.SerializedPropertyName, x => x.Value);
             var outerDictionary = this._settingsFilePath.Exists()
-                ? JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(await this._settingsFilePath.ReadAllTextAsync().ConfigureAwait(false), _jsonSerializerOptions) ?? []
+                ? JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(await this._settingsFilePath.ReadAllTextAsync().ConfigureAwait(false), this._jsonSerializerOptions) ?? []
                 : [];
-            outerDictionary[this._settingsSectionName] = JsonSerializer.SerializeToElement(sectionDictionary, _jsonSerializerOptions);
+            outerDictionary[this._settingsSectionName] = JsonSerializer.SerializeToElement(sectionDictionary, this._jsonSerializerOptions);
 
-            var newJson = JsonSerializer.Serialize(outerDictionary, _jsonSerializerOptions);
+            var newJson = JsonSerializer.Serialize(outerDictionary, this._jsonSerializerOptions);
 
             Interlocked.Exchange(ref this._lastSaveTimestamp, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
             await this._settingsFilePath.AsDestructive().WriteAsync(newJson).ConfigureAwait(false);
@@ -236,6 +242,17 @@ public abstract partial class ReactiveSettingsBase : IDisposable
         {
             Log.Error(ex, "❌Error", new() { reason, { this._settingsFilePath.AsDestructive().FullName, "fullname" } });
         }
+    }
+
+    private static JsonSerializerOptions BuildJsonSerializerOptions(IReadOnlyList<JsonConverter> converters)
+    {
+        var options = new JsonSerializerOptions(_defaultJsonSerializerOptions);
+        foreach (var converter in converters)
+        {
+            options.Converters.Add(converter);
+        }
+
+        return options;
     }
 
     public virtual void Dispose()

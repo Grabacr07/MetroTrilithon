@@ -42,7 +42,7 @@ public sealed class ReactiveSettingsBaseTest
     }
 
     private sealed class TestSettings(FilePath filePath, TimeProvider? timeProvider = null)
-        : ReactiveSettingsBase(filePath, null, timeProvider)
+        : ReactiveSettingsBase(filePath, timeProvider: timeProvider, converters: [new MioPathJsonConverterFactory()])
     {
         public ReactiveProperty<string> Name { get; } = new("default-name");
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Amethystra.Diagnostics;
 using Mio;
@@ -14,12 +15,14 @@ namespace Amethystra.UI.Controls;
 [GenerateLogger]
 public partial class WindowStateStore : IDisposable
 {
-    private static readonly JsonSerializerOptions _jsonOptions = new()
+    private static readonly JsonSerializerOptions _defaultJsonOptions = new()
     {
         WriteIndented = true,
         PropertyNameCaseInsensitive = true,
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
     };
+
+    private readonly JsonSerializerOptions _jsonOptions;
 
     private readonly FilePath _filePath;
     private Dictionary<string, PersistedWindowState?> _states = [];
@@ -28,7 +31,16 @@ public partial class WindowStateStore : IDisposable
     private bool _disposed;
 
     public WindowStateStore(FilePath filePath)
+        : this(filePath, null)
     {
+    }
+
+    public WindowStateStore(FilePath filePath, IReadOnlyList<JsonConverter>? converters)
+    {
+        this._jsonOptions = converters is { Count: > 0 }
+            ? BuildJsonOptions(converters)
+            : _defaultJsonOptions;
+
         this._filePath = filePath;
         this.LoadSync();
 
@@ -90,6 +102,16 @@ public partial class WindowStateStore : IDisposable
         {
             Log.Warn(ex, "❌Error", new() { { this._filePath.Name, "file" } });
         }
+    }
+
+    private static JsonSerializerOptions BuildJsonOptions(IReadOnlyList<JsonConverter> converters)
+    {
+        var options = new JsonSerializerOptions(_defaultJsonOptions);
+        foreach (var converter in converters)
+        {
+            options.Converters.Add(converter);
+        }
+        return options;
     }
 
     public void Dispose()
