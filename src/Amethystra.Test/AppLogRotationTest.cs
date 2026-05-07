@@ -1,7 +1,7 @@
 using System;
 using Amethystra.Diagnostics;
-using Mio;
-using Mio.Destructive;
+using Amethystra.IO;
+using Amethystra.IO.Destructive;
 
 namespace Amethystra.Test;
 

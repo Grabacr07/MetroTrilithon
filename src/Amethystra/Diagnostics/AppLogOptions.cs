@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 using Amethystra.Properties;
-using Mio;
+using Amethystra.IO;
 
 namespace Amethystra.Diagnostics;
 

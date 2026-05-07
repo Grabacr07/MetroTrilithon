@@ -8,8 +8,8 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Amethystra.Properties;
-using Mio;
-using Mio.Destructive;
+using Amethystra.IO;
+using Amethystra.IO.Destructive;
 
 namespace Amethystra.Diagnostics;
 

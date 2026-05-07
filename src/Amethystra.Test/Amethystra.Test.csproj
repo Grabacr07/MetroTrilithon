@@ -13,8 +13,7 @@
     <PackageReference Update="MSTest.TestAdapter" Version="4.2.1" />
     <PackageReference Update="MSTest.TestFramework" Version="4.2.1" />
     <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.5.0" />
-    <PackageReference Include="Mio" Version="3.0.1" />
-    <PackageReference Include="R3" Version="1.3.0" />
+<PackageReference Include="R3" Version="1.3.0" />
   </ItemGroup>
 
   <ItemGroup>

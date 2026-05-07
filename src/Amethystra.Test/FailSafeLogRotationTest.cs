@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Amethystra.Diagnostics;
-using Mio;
-using Mio.Destructive;
+using Amethystra.IO;
+using Amethystra.IO.Destructive;
 
 namespace Amethystra.Test;
 

@@ -1,8 +1,8 @@
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using Mio;
-using Mio.Destructive;
+using Amethystra.IO;
+using Amethystra.IO.Destructive;
 
 namespace Amethystra.Diagnostics;
 
