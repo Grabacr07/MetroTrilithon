@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using JetBrains.Annotations;
 using R3;
 
 namespace Amethystra;
@@ -17,6 +18,7 @@ public static class DesignFeatures
         => false;
 #endif
 
+    [Pure]
     public static Observable<T> StopIfInDesignMode<T>(this Observable<T> source)
 #if DEBUG
         => source.Where(_ => IsInDesignMode == false);

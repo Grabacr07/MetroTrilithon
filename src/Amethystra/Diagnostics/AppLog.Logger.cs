@@ -4,15 +4,18 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using JetBrains.Annotations;
 using R3;
 
 namespace Amethystra.Diagnostics;
 
 partial class AppLog
 {
+    [MustUseReturnValue]
     public Logger For<T>()
         => new(this, typeof(T).Name);
 
+    [MustUseReturnValue]
     public Logger For(Type type)
         => new(this, type.Name);
 
@@ -72,6 +75,7 @@ partial class AppLog
             [CallerMemberName] string? caller = null)
             => this._log?.WriteFromTypedLogger(LogLevel.Fatal, message, null, typeName, caller, data);
 
+        [MustUseReturnValue]
         public IDisposable BeginOperation(
             string operationName,
             Data? data = null,

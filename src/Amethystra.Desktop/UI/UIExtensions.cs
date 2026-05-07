@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
+using JetBrains.Annotations;
 
 namespace Amethystra.UI;
 
@@ -14,6 +15,7 @@ public static class UIExtensions
     /// <summary>
     /// 'XxxProperty' -> 'Xxx'
     /// </summary>
+    [Pure]
     public static string GetPropertyName(this string dependencyPropertyName)
         => dependencyPropertyName.Equals(_propertyKeyword, StringComparison.OrdinalIgnoreCase) == false
             && dependencyPropertyName.EndsWith(_propertyKeyword, StringComparison.Ordinal)

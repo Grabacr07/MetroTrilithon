@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.CompilerServices;
 using Amethystra.Diagnostics;
+using JetBrains.Annotations;
 
 namespace Amethystra.Disposables;
 
@@ -23,30 +24,39 @@ public sealed class ScopedFlag : IEquatable<ScopedFlag>
     /// Enables the flag (sets to true) and returns an <see cref="IDisposable"/>.
     /// When disposed, it decrements the counter and resets to false if it reaches zero.
     /// </summary>
+    [MustUseReturnValue]
     public IDisposable Enable([CallerMemberName] string member = "", [CallerFilePath] string file = "")
         => this._gate.Acquire(Caller.GetCallerLabel(member, file));
 
+    [Pure]
     public bool Equals(ScopedFlag? other)
         => this.Value == other?.Value;
 
+    [Pure]
     public override bool Equals(object? obj)
         => obj is ScopedFlag other && this.Equals(other);
 
+    [Pure]
     public override int GetHashCode()
         => this.Value.GetHashCode();
 
+    [Pure]
     public static bool operator ==(ScopedFlag left, bool right)
         => left.Value == right;
 
+    [Pure]
     public static bool operator !=(ScopedFlag left, bool right)
         => left.Value != right;
 
+    [Pure]
     public static bool operator ==(bool left, ScopedFlag right)
         => left == right.Value;
 
+    [Pure]
     public static bool operator !=(bool left, ScopedFlag right)
         => left != right.Value;
 
+    [Pure]
     public static implicit operator bool(ScopedFlag flag)
         => flag.Value;
 }

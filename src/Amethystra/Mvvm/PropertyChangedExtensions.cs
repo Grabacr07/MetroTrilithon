@@ -2,12 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq.Expressions;
+using JetBrains.Annotations;
 using R3;
 
 namespace Amethystra.Mvvm;
 
 public static class PropertyChangedExtensions
 {
+    [MustUseReturnValue]
     public static IDisposable Subscribe<TTarget, TProperty>(
         this TTarget source,
         Expression<Func<TTarget, TProperty>> propertyExpression,

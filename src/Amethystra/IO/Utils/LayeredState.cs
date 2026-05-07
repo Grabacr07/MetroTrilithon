@@ -6,6 +6,7 @@
 
 using System;
 using System.Threading;
+using JetBrains.Annotations;
 
 namespace Amethystra.IO.Utils;
 
@@ -34,6 +35,7 @@ public sealed class LayeredState<TValue, TConditionArg>(TValue fallbackValue)
 
     public TValue FallbackValue { get; set; } = fallbackValue;
 
+    [Pure]
     public TValue GetValueFor(TConditionArg conditionArg)
     {
         TValue? value = default;
@@ -47,6 +49,7 @@ public sealed class LayeredState<TValue, TConditionArg>(TValue fallbackValue)
         return this.FallbackValue;
     }
 
+    [MustUseReturnValue]
     public IDisposable BeginWith(TValue value, Func<TConditionArg, bool>? condition = null)
     {
         var current = this._value.Value;

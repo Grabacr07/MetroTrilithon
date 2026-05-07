@@ -9,6 +9,7 @@ using System.Windows.Interop;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
+using JetBrains.Annotations;
 
 namespace Amethystra.UI.Interop;
 
@@ -56,6 +57,7 @@ public class WindowPlacement(WindowState state, Rect rect)
         PInvoke.SetWindowPlacement(new HWND(hwnd), placement);
     }
 
+    [MustUseReturnValue]
     public static WindowPlacement Get(Window window)
     {
         var hwnd = new WindowInteropHelper(window).Handle;

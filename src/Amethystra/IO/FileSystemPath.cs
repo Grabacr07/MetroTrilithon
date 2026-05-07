@@ -39,15 +39,19 @@ public abstract partial class FileSystemPath
     public bool ExtensionEquals(string? extension, FileSystemPathComparer? comparer = null)
         => (comparer ?? Comparer.GetValueFor((this, this))).Equals(this.Extension.TrimStart('.'), extension?.TrimStart('.'));
 
+    [MustUseReturnValue]
     public bool FullNameMatches(string pattern, FileSystemPathComparer? comparer = null)
         => (comparer ?? Comparer.GetValueFor((this, this))).Matches(this.FullName, pattern);
 
+    [MustUseReturnValue]
     public bool NameMatches(string pattern, FileSystemPathComparer? comparer = null)
         => (comparer ?? Comparer.GetValueFor((this, this))).Matches(this.Name, pattern);
 
+    [MustUseReturnValue]
     public bool NameWithoutExtensionMatches(string pattern, FileSystemPathComparer? comparer = null)
         => (comparer ?? Comparer.GetValueFor((this, this))).Matches(this.NameWithoutExtension, pattern);
 
+    [MustUseReturnValue]
     public bool ExtensionMatches(string pattern, FileSystemPathComparer? comparer = null)
         => (comparer ?? Comparer.GetValueFor((this, this))).Matches(this.Extension.TrimStart('.'), pattern.TrimStart('.'));
 

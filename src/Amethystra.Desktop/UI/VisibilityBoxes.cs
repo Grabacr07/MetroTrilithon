@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using System.Windows;
 
 namespace Amethystra.UI;
@@ -12,6 +13,7 @@ public static class VisibilityBoxes
     public static readonly object HiddenBox = Visibility.Hidden;
     public static readonly object CollapsedBox = Visibility.Collapsed;
 
+    [Pure]
     public static object Box(Visibility value)
         => value switch
         {

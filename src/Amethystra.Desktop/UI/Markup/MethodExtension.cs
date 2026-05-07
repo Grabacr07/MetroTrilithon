@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Markup;
 using Amethystra.UI.Interactivity;
+using JetBrains.Annotations;
 
 namespace Amethystra.UI.Markup;
 
@@ -14,6 +15,7 @@ public class MethodExtension(string name) : MarkupExtension
 
     public object? Parameter { get; set; }
 
+    [Pure]
     public override object ProvideValue(IServiceProvider serviceProvider)
         => new CallMethodInfo(this.Name, this.Parameter, null);
 }

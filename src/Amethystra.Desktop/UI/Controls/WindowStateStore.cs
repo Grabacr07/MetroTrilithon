@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Amethystra.Diagnostics;
 using Amethystra.IO;
 using Amethystra.IO.Destructive;
+using JetBrains.Annotations;
 using R3;
 
 namespace Amethystra.UI.Controls;
@@ -49,12 +50,15 @@ public partial class WindowStateStore : IDisposable
             .SubscribeAwait(async (_, ct) => await this.SaveAsync(ct), AwaitOperation.Drop);
     }
 
+    [Pure]
     public PersistedWindowState? GetState(string key)
         => this._states.GetValueOrDefault(key);
 
+    [Pure]
     public PersistedWindowState? GetState<TWindow>()
         => this.GetState(typeof(TWindow).Name);
 
+    [Pure]
     public PersistedWindowState? GetState<TWindow>(string instanceKey)
         => this.GetState($"{typeof(TWindow).Name}:{instanceKey}");
 

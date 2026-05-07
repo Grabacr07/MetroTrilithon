@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 
 namespace Amethystra.UI.Interactivity;
 
@@ -24,6 +25,7 @@ public sealed class WindowTransitionRequest(object viewModel, WindowTransitionMo
     /// <summary>
     /// ウィンドウが閉じられるまで待機し、ダイアログの結果を返します。
     /// </summary>
+    [MustUseReturnValue]
     public Task<bool?> WaitForResultAsync(CancellationToken cancellationToken = default)
         => this._result.Task.WaitAsync(cancellationToken);
 }

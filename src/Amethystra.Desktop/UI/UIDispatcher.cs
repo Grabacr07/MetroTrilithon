@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Threading;
+using JetBrains.Annotations;
 
 namespace Amethystra.UI;
 
@@ -23,6 +24,7 @@ public static class UIDispatcher
         _ = _instance.Value;
     }
 
+    [MustUseReturnValue]
     public static DispatcherAwaiter Switch()
         => new(_instance.Value);
 

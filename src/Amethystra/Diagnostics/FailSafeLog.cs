@@ -56,6 +56,7 @@ public static partial class FailSafeLog
     public static void Fatal(string message, Exception? exception = null, string? category = null, IReadOnlyDictionary<string, object?>? data = null)
         => Write(LogLevel.Fatal, message, category, data, exception);
 
+    [MustUseReturnValue]
     public static IDisposable BeginOperation(string operationName, string? category = null, IReadOnlyDictionary<string, object?>? data = null)
         => new OperationScope(operationName, category, data);
 

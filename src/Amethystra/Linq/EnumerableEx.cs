@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 
 namespace Amethystra.Linq;
 
 public static class EnumerableEx
 {
+    [Pure]
     public static IEnumerable<T> Return<T>(T value)
     {
         yield return value;
@@ -15,6 +17,7 @@ public static class EnumerableEx
 
     extension<T>(IEnumerable<T> source)
     {
+        [LinqTunnel]
         public IEnumerable<T> Do(Action<T> action)
         {
             foreach (var item in source)
@@ -24,6 +27,7 @@ public static class EnumerableEx
             }
         }
 
+        [LinqTunnel]
         public IEnumerable<T> Do(Action<T, int> action)
         {
             var i = 0;
@@ -34,7 +38,7 @@ public static class EnumerableEx
             }
         }
 
-        public void ForEach(Action<T> action)
+        public void ForEach([InstantHandle] Action<T> action)
         {
             foreach (var item in source)
             {
@@ -42,7 +46,7 @@ public static class EnumerableEx
             }
         }
 
-        public void ForEach(Action<T, int> action)
+        public void ForEach([InstantHandle] Action<T, int> action)
         {
             var i = 0;
             foreach (var item in source)
@@ -51,6 +55,7 @@ public static class EnumerableEx
             }
         }
 
+        [LinqTunnel]
         public IEnumerable<T> EnsureCount(int count, Func<int, T> selector)
             => source
                 .Take(count)
@@ -70,9 +75,11 @@ public static class EnumerableEx
         public IEnumerable<T> Random()
             => source.OrderBy(static _ => Guid.NewGuid());
 
+        [Pure]
         public string JoinString(string separator)
             => string.Join(separator, source as IEnumerable<string> ?? source.Select(static x => $"{x}"));
 
+        [MustUseReturnValue]
         public ObservableCollection<T> ToObservableCollection()
             => [.. source];
     }

@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using R3;
 
 namespace Amethystra.UI.Interactivity;
@@ -13,6 +14,7 @@ public static class WindowTransitionExtensions
         public void Show(object viewModel)
             => subject.OnNext(new WindowTransitionRequest(viewModel));
 
+        [MustUseReturnValue]
         public Task<bool?> ShowDialogAsync(
             object viewModel,
             CancellationToken cancellationToken = default)

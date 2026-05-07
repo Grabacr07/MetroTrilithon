@@ -2,11 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 
 namespace Amethystra.Synchronization;
 
 public static class SemaphoreSlimExtensions
 {
+    [MustUseReturnValue]
     public static async ValueTask<IDisposable> AcquireAsync(this SemaphoreSlim semaphore, CancellationToken cancellationToken = default)
     {
         await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);

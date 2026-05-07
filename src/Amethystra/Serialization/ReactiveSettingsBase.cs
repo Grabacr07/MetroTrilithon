@@ -9,6 +9,7 @@ using Amethystra.Diagnostics;
 using Amethystra.Disposables;
 using Amethystra.IO;
 using Amethystra.IO.Destructive;
+using JetBrains.Annotations;
 using R3;
 
 namespace Amethystra.Serialization;
@@ -130,6 +131,7 @@ public abstract partial class ReactiveSettingsBase : IDisposable
         this._load.OnNext(LoadReason.Initialize);
     }
 
+    [MustUseReturnValue]
     public async Task EnsureLoadedAsync(CancellationToken ct = default)
         => await this._isInitialized
             .Where(static x => x)
@@ -142,6 +144,7 @@ public abstract partial class ReactiveSettingsBase : IDisposable
         this._load.OnNext(LoadReason.Explicit);
     }
 
+    [MustUseReturnValue]
     public virtual Task LoadAsync()
     {
         this._disposeGate.ThrowIfDisposed();
@@ -154,6 +157,7 @@ public abstract partial class ReactiveSettingsBase : IDisposable
         this._save.OnNext(SaveReason.Explicit);
     }
 
+    [MustUseReturnValue]
     public virtual Task SaveAsync()
     {
         this._disposeGate.ThrowIfDisposed();

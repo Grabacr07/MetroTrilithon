@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using R3;
 
 namespace Amethystra.Mvvm;
@@ -46,6 +47,7 @@ public static class ViewModelExtensions
 
     extension<T>(ReactiveCommand<T> command)
     {
+        [MustUseReturnValue]
         public ReactiveCommand<T> SubscribeWith(ViewModelBase vm, Action<T> onNext)
         {
             vm.Add(command);
@@ -53,6 +55,7 @@ public static class ViewModelExtensions
             return command;
         }
 
+        [MustUseReturnValue]
         public ReactiveCommand<T> SubscribeWith(ViewModelBase vm, Func<T, CancellationToken, ValueTask> onNextAsync, AwaitOperation awaitOperation = AwaitOperation.Sequential)
         {
             vm.Add(command);

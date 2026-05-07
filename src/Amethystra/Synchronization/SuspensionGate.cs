@@ -2,6 +2,7 @@ using System;
 using System.Runtime.CompilerServices;
 using Amethystra.Diagnostics;
 using Amethystra.Disposables;
+using JetBrains.Annotations;
 using R3;
 
 namespace Amethystra.Synchronization;
@@ -19,6 +20,7 @@ public sealed class SuspensionGate : IDisposable
             .Select(static x => x > 0)
             .DistinctUntilChanged();
 
+    [MustUseReturnValue]
     public IDisposable Acquire([CallerMemberName] string member = "", [CallerFilePath] string file = "")
         => this._gate.Acquire(Caller.GetCallerLabel(member, file));
 
@@ -28,6 +30,7 @@ public sealed class SuspensionGate : IDisposable
 
 public static class SuspensionGateExtensions
 {
+    [Pure]
     public static Observable<T> WhenNotSuspended<T>(
         this Observable<T> source,
         SuspensionGate gate)
