@@ -104,6 +104,7 @@ public abstract partial class FileSystemPath
                 normalizedPath += Path.DirectorySeparatorChar;
             }
 
+            normalizedPath = Environment.ExpandEnvironmentVariables(normalizedPath);
             normalizedPath = Path.GetFullPath(normalizedPath);
             this.FullName = normalizedPath;
         }
