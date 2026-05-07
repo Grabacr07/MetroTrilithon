@@ -7,18 +7,17 @@
 using System;
 using JetBrains.Annotations;
 
-namespace Amethystra.IO
-{
-    partial class FileSystemPath
-    {
-        private static readonly Type? _hyperlinqType = Type.GetType("LINQPad.Hyperlinq, LINQPad.Runtime")
-            // LINQPad 5 or below
-            ?? Type.GetType("LINQPad.Hyperlinq, LINQPad");
+namespace Amethystra.IO;
 
-        [UsedImplicitly]
-        private protected object? ToDump()
-            => _hyperlinqType == null
-                ? this.ToString()
-                : Activator.CreateInstance(_hyperlinqType, this.FullName, this.ToString());
-    }
+partial class FileSystemPath
+{
+    private static readonly Type? _hyperlinqType = Type.GetType("LINQPad.Hyperlinq, LINQPad.Runtime")
+        // LINQPad 5 or below
+        ?? Type.GetType("LINQPad.Hyperlinq, LINQPad");
+
+    [UsedImplicitly]
+    private protected object? ToDump()
+        => _hyperlinqType == null
+            ? this.ToString()
+            : Activator.CreateInstance(_hyperlinqType, this.FullName, this.ToString());
 }

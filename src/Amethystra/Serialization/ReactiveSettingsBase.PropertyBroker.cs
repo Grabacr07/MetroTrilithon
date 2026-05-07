@@ -56,7 +56,7 @@ partial class ReactiveSettingsBase
             .Where(static prop =>
                 prop.PropertyType.IsGenericType &&
                 (prop.PropertyType.GetGenericTypeDefinition() == typeof(ReactiveProperty<>) ||
-                 prop.PropertyType.GetGenericTypeDefinition() == typeof(BindableReactiveProperty<>)))
+                    prop.PropertyType.GetGenericTypeDefinition() == typeof(BindableReactiveProperty<>)))
             .Select(prop =>
             {
                 var valueType = prop.PropertyType.GetGenericArguments()[0];

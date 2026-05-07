@@ -92,7 +92,7 @@ public abstract partial class ReactiveSettingsBase : IDisposable
 
         var effectiveTimeProvider = timeProvider ?? TimeProvider.System;
 
-        var watcher = new FileSystemWatcher(this._settingsFilePath.Parent.AsDestructive().FullName, this._settingsFilePath.Name)
+        var watcher = new FileSystemWatcher(this._settingsFilePath.Parent.FullName, this._settingsFilePath.Name)
             {
                 NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size | NotifyFilters.FileName,
                 EnableRaisingEvents = true,
@@ -200,11 +200,11 @@ public abstract partial class ReactiveSettingsBase : IDisposable
                 }
             }
 
-            Log.Info("✅Success", new() { reason, { this._settingsFilePath.AsDestructive().FullName, "fullname" } });
+            Log.Info("✅Success", new() { reason, { this._settingsFilePath.FullName, "fullname" } });
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "❌Error", new() { reason, { this._settingsFilePath.AsDestructive().FullName, "fullname" } });
+            Log.Error(ex, "❌Error", new() { reason, { this._settingsFilePath.FullName, "fullname" } });
         }
         finally
         {
@@ -236,11 +236,11 @@ public abstract partial class ReactiveSettingsBase : IDisposable
             Interlocked.Exchange(ref this._lastSaveTimestamp, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
             await this._settingsFilePath.AsDestructive().WriteAsync(newJson).ConfigureAwait(false);
 
-            Log.Info("✅Success", new() { reason, { this._settingsFilePath.AsDestructive().FullName, "fullname" } });
+            Log.Info("✅Success", new() { reason, { this._settingsFilePath.FullName, "fullname" } });
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "❌Error", new() { reason, { this._settingsFilePath.AsDestructive().FullName, "fullname" } });
+            Log.Error(ex, "❌Error", new() { reason, { this._settingsFilePath.FullName, "fullname" } });
         }
     }
 

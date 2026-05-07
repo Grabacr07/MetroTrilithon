@@ -6,16 +6,15 @@
 
 using JetBrains.Annotations;
 
-namespace Amethystra.IO.Destructive
-{
-    public static class DestructiveExtensions
-    {
-        [Pure]
-        public static DestructiveFilePath AsDestructive(this FilePath file)
-            => file.CreateDestructive();
+namespace Amethystra.IO.Destructive;
 
-        [Pure]
-        public static DestructiveDirectoryPath AsDestructive(this DirectoryPath directory)
-            => directory.CreateDestructive();
-    }
+public static class DestructiveExtensions
+{
+    [Pure]
+    public static DestructiveFilePath AsDestructive(this FilePath file)
+        => file.CreateDestructive();
+
+    [Pure]
+    public static DestructiveDirectoryPath AsDestructive(this DirectoryPath directory)
+        => directory.CreateDestructive();
 }

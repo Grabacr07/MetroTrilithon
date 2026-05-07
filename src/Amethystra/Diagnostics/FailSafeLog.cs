@@ -7,9 +7,10 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using Amethystra.Properties;
 using Amethystra.IO;
 using Amethystra.IO.Destructive;
+using Amethystra.Properties;
+using JetBrains.Annotations;
 
 namespace Amethystra.Diagnostics;
 
@@ -80,7 +81,7 @@ public static partial class FailSafeLog
 
                 TryRotateLogFileIfNeeded();
 
-                using var stream = new FileStream(LogFilePath.AsDestructive().FullName, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
+                using var stream = LogFilePath.AsDestructive().Open(FileMode.Append, FileAccess.Write, FileShare.ReadWrite, options: FileOptions.None);
                 using var writer = new StreamWriter(stream, _utf8NoBom);
 
                 writer.WriteLine(json);
@@ -176,6 +177,7 @@ public static partial class FailSafeLog
         }
     }
 
+    [UsedImplicitly]
     private sealed record FailSafeLogEntry(
         string Timestamp,
         LogLevel Level,
@@ -205,6 +207,7 @@ public static partial class FailSafeLog
                 exception is null ? null : ExceptionInfo.From(exception));
     }
 
+    [UsedImplicitly]
     private sealed record ExceptionInfo(
         string Type,
         string Message,

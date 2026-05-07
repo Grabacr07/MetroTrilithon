@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -77,7 +76,7 @@ public partial class WindowStateStore : IDisposable
         {
             if (this._filePath.Exists() == false) return;
 
-            var json = File.ReadAllText(this._filePath.AsDestructive().FullName);
+            var json = this._filePath.ReadAllText();
             var dict = JsonSerializer.Deserialize<Dictionary<string, PersistedWindowState?>>(json, _jsonOptions);
             if (dict is not null) this._states = dict;
 

@@ -126,7 +126,7 @@ partial class AppLog
         private void OpenWriter()
         {
             this._stream?.Close();
-            this._stream = new FileStream(this._options.LogFilePath.AsDestructive().FullName, FileMode.Append, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
+            this._stream = this._options.LogFilePath.AsDestructive().Open(FileMode.Append, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete, options: FileOptions.None);
 
             this._writer?.Close();
             this._writer = new StreamWriter(this._stream, this._options.Encoding);
