@@ -104,6 +104,7 @@ public static partial class WindowFeatures
                     state.IsMaximized ? WindowState.Maximized : WindowState.Normal,
                     new Rect(state.Left, state.Top, state.Width, state.Height))
                 .Apply(window);
+            window.SetCurrentValue(Window.TopmostProperty, state.IsTopmost);
         }
 
         private static IDisposable Subscribe(Window window, WindowStateStore store, string key)
