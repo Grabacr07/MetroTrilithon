@@ -35,13 +35,30 @@ public abstract class ViewModelBase : IDisposable
 
 public static class ViewModelExtensions
 {
+    extension(IDisposable disposable)
+    {
+        public void AddTo(ViewModelBase vm)
+        {
+            vm.Add(disposable);
+        }
+    }
+
     extension<TDisposable>(TDisposable disposable)
         where TDisposable : IDisposable
     {
+        [MustUseReturnValue]
         public TDisposable AddTo(ViewModelBase vm)
         {
             vm.Add(disposable);
             return disposable;
+        }
+    }
+
+    extension<T>(Observable<T> source)
+    {
+        public void SubscribeWith(ViewModelBase vm, Action<T> onNext)
+        {
+            source.Subscribe(onNext).AddTo(vm);
         }
     }
 
