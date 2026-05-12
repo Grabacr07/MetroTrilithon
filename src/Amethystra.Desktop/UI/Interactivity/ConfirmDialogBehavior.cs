@@ -79,6 +79,11 @@ public class ConfirmDialogBehavior : Behavior<ContentDialogHost>
                 Content = msg.Content,
                 PrimaryButtonText = msg.PrimaryButtonText,
                 CloseButtonText = msg.CloseButtonText,
+                PrimaryButtonAppearance = msg.Intent switch
+                {
+                    ConfirmIntent.Destructive => ControlAppearance.Danger,
+                    _ => ControlAppearance.Primary,
+                },
             };
             var result = await dialog.ShowAsync(ct);
             var confirmed = result == ContentDialogResult.Primary;

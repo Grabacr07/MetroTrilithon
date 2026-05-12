@@ -18,6 +18,12 @@ public sealed class ConfirmMessage
     public string CloseButtonText { get; init; } = "キャンセル";
 
     /// <summary>
+    /// 確認操作の意図を取得します。<see cref="ConfirmIntent.Destructive"/> の場合、
+    /// ビヘイビアはプライマリ ボタンを Danger 系の見た目で表示します。
+    /// </summary>
+    public ConfirmIntent Intent { get; init; } = ConfirmIntent.Default;
+
+    /// <summary>
     /// ユーザーの応答を待機するタスクを取得します。
     /// <see langword="true"/> の場合、プライマリボタンが選択されたことを示します。
     /// </summary>
