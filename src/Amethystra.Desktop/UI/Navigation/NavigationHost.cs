@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 using R3;
 
 namespace Amethystra.UI.Navigation;
@@ -10,12 +11,16 @@ namespace Amethystra.UI.Navigation;
 /// </summary>
 /// <remarks>
 /// <para>
-/// ViewModel 側で <see cref="NavigateTo"/> / <see cref="GoBack"/> / <see cref="GoToDepth"/> を呼び出すと、
+/// ViewModel 側で <see cref="NavigateTo"/> / <see cref="GoBackAsync"/> / <see cref="GoToDepthAsync"/> を呼び出すと、
 /// 内部スタックを更新したうえで <see cref="Events"/> から購読中のビヘイビアがビュー操作を実施します。
 /// </para>
 /// <para>
 /// スタックから取り除かれた ViewModel が <see cref="IDisposable"/> を実装している場合は <see cref="NavigationHost"/> が dispose します。
 /// <see cref="Dispose"/> 時にはスタックに残っているすべての ViewModel も dispose されます。
+/// </para>
+/// <para>
+/// 末尾の ViewModel が <see cref="INavigationGuard"/> を実装している場合、<see cref="GoBackAsync"/> / <see cref="GoToDepthAsync"/> は
+/// pop の前にそのガードを呼び出して許可を確認します。
 /// </para>
 /// </remarks>
 public sealed class NavigationHost : IDisposable
@@ -51,7 +56,7 @@ public sealed class NavigationHost : IDisposable
         => this._events;
 
     /// <summary>
-    /// <see cref="GoBack"/> を呼び出すためのコマンドを取得します。<see cref="CanGoBack"/> に追従して有効化されます。
+    /// <see cref="GoBackAsync"/> を呼び出すためのコマンドを取得します。<see cref="CanGoBack"/> に追従して有効化されます。
     /// </summary>
     public ReactiveCommand<Unit> GoBackCommand { get; }
 
@@ -60,7 +65,7 @@ public sealed class NavigationHost : IDisposable
         this.Stack = new ReadOnlyObservableCollection<object>(this._stack);
         this.GoBackCommand = this._canGoBack
             .AsObservable()
-            .ToReactiveCommand<Unit>(_ => this.GoBack(), false);
+            .ToReactiveCommand<Unit>(async (_, _) => await this.GoBackAsync(), false, AwaitOperation.Drop);
     }
 
     /// <summary>
@@ -79,18 +84,37 @@ public sealed class NavigationHost : IDisposable
     /// <summary>
     /// スタックの末尾から ViewModel を取り除き、ひとつ手前の ViewModel をカレントに戻します。
     /// </summary>
-    /// <returns>戻り遷移が実行された場合は <see langword="true"/>、スタックの深さが 1 以下で実行できなかった場合は <see langword="false"/>。</returns>
+    /// <param name="respectGuard">末尾の <see cref="INavigationGuard"/> を尊重する場合は <see langword="true"/>。意図的にバイパスする場合は <see langword="false"/>。</param>
+    /// <returns>戻り遷移が実行された場合は <see langword="true"/>、スタックの深さが 1 以下、またはガードに拒否された場合は <see langword="false"/>。</returns>
     /// <remarks>取り除かれた ViewModel が <see cref="IDisposable"/> の場合は dispose されます。</remarks>
-    public bool GoBack()
-        => this.GoToDepth(this._stack.Count - 2) > 0;
+    public async ValueTask<bool> GoBackAsync(bool respectGuard = true)
+    {
+        var popped = await this.GoToDepthAsync(this._stack.Count - 2, respectGuard);
+        return popped > 0;
+    }
 
     /// <summary>
     /// スタックを指定した深さ (末尾 index) になるまで pop します。
     /// </summary>
     /// <param name="targetDepthIndex">最終的に末尾としたい index。0 で先頭まで戻します。</param>
-    /// <returns>取り除かれた ViewModel の個数。</returns>
+    /// <param name="respectGuard">末尾の <see cref="INavigationGuard"/> を尊重する場合は <see langword="true"/>。意図的にバイパスする場合は <see langword="false"/>。</param>
+    /// <returns>取り除かれた ViewModel の個数。ガードに拒否された場合は 0。</returns>
     /// <remarks>取り除かれた ViewModel が <see cref="IDisposable"/> の場合は dispose されます。</remarks>
-    public int GoToDepth(int targetDepthIndex)
+    public async ValueTask<int> GoToDepthAsync(int targetDepthIndex, bool respectGuard = true)
+    {
+        if (this._disposed) return 0;
+        if (targetDepthIndex < 0) return 0;
+        if (targetDepthIndex >= this._stack.Count - 1) return 0;
+
+        if (respectGuard && this._stack[^1] is INavigationGuard guard)
+        {
+            if (await guard.CanLeaveAsync() == false) return 0;
+        }
+
+        return this.GoToDepthCore(targetDepthIndex);
+    }
+
+    private int GoToDepthCore(int targetDepthIndex)
     {
         if (this._disposed) return 0;
         if (targetDepthIndex < 0) return 0;

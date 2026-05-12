@@ -5,7 +5,7 @@ using Wpf.Ui.Controls;
 namespace Amethystra.UI.Navigation;
 
 /// <summary>
-/// <see cref="BreadcrumbBar"/> のクリックを受け取り、<see cref="NavigationHost.GoToDepth"/> を呼び出します。
+/// <see cref="BreadcrumbBar"/> のクリックを受け取り、<see cref="NavigationHost.GoToDepthAsync"/> を呼び出します。
 /// </summary>
 /// <remarks>
 /// <para>
@@ -69,6 +69,12 @@ public class BreadcrumbBarNavigationBehavior : Behavior<BreadcrumbBar>
 
     private void HandleItemClicked(BreadcrumbBar sender, BreadcrumbBarItemClickedEventArgs args)
     {
-        this.Host?.GoToDepth(args.Index);
+        var host = this.Host;
+        if (host == null) return;
+
+        this.AssociatedObject?.Dispatcher.BeginInvoke(async () =>
+        {
+            await host.GoToDepthAsync(args.Index);
+        });
     }
 }

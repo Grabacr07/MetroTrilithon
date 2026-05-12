@@ -36,6 +36,7 @@ public partial class FrameNavigationBehavior : Behavior<Frame>
 {
     private IDisposable? _subscription;
     private bool _navigatedHooked;
+    private bool _navigatingHooked;
     private bool _nextNavigationIsBack;
 
     #region Host dependency property
@@ -121,6 +122,8 @@ public partial class FrameNavigationBehavior : Behavior<Frame>
     {
         base.OnAttached();
         this.AssociatedObject.Unloaded += this.HandleUnloaded;
+        this.AssociatedObject.Navigating += this.HandleNavigating;
+        this._navigatingHooked = true;
         this.AssociatedObject.Navigated += this.HandleNavigated;
         this._navigatedHooked = true;
         this.Resubscribe();
@@ -134,6 +137,11 @@ public partial class FrameNavigationBehavior : Behavior<Frame>
         if (this.AssociatedObject != null)
         {
             this.AssociatedObject.Unloaded -= this.HandleUnloaded;
+            if (this._navigatingHooked)
+            {
+                this.AssociatedObject.Navigating -= this.HandleNavigating;
+                this._navigatingHooked = false;
+            }
             if (this._navigatedHooked)
             {
                 this.AssociatedObject.Navigated -= this.HandleNavigated;
@@ -219,6 +227,25 @@ public partial class FrameNavigationBehavior : Behavior<Frame>
         {
             this._nextNavigationIsBack = true;
             frame.GoBack();
+        }
+    }
+
+    private void HandleNavigating(object sender, NavigatingCancelEventArgs e)
+    {
+        // ホスト主導以外の Back / Forward 遷移 (マウス戻る/進む、Alt+Left、Backspace 等) は
+        // ホストのスタックと同期しなくなるためキャンセルし、ホスト経由で戻し直す。
+        if (e.NavigationMode == NavigationMode.Back && this._nextNavigationIsBack == false)
+        {
+            e.Cancel = true;
+            var host = this.Host;
+            this.AssociatedObject?.Dispatcher.BeginInvoke(async () =>
+            {
+                if (host != null) await host.GoBackAsync();
+            });
+        }
+        else if (e.NavigationMode == NavigationMode.Forward)
+        {
+            e.Cancel = true;
         }
     }
 
