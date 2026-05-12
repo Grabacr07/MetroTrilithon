@@ -10,7 +10,7 @@
         注意: このファイルは URI 経由で独立してロードされるため、BasedOn で WPF-UI の
         implicit style を参照できない。WPF-UI のセッターをすべて DynamicResource で再定義する。
     -->
-    <Style x:Key="Style.CardAction.ChevronGlyph"
+    <Style x:Key="Style.CardAction.Themed"
            TargetType="{x:Type ui:CardAction}">
         <Setter Property="FocusVisualStyle"
                 Value="{DynamicResource DefaultControlFocusVisualStyle}" />
@@ -36,8 +36,6 @@
                 Value="{DynamicResource ControlContentThemeFontSize}" />
         <Setter Property="FontWeight"
                 Value="Normal" />
-        <Setter Property="Border.CornerRadius"
-                Value="{DynamicResource ControlCornerRadius}" />
         <Setter Property="SnapsToDevicePixels"
                 Value="True" />
         <Setter Property="OverridesDefaultStyle"
@@ -56,7 +54,7 @@
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="{TemplateBinding Border.CornerRadius}">
+                            CornerRadius="{Binding Path=(ctrls:CardActionExtensions.CornerRadius), RelativeSource={RelativeSource TemplatedParent}}">
                         <Grid HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                               VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
                             <Grid.ColumnDefinitions>
@@ -203,5 +201,8 @@
             </Setter.Value>
         </Setter>
     </Style>
+
+    <Style TargetType="{x:Type ui:CardAction}"
+           BasedOn="{StaticResource Style.CardAction.Themed}" />
 
 </ResourceDictionary>
