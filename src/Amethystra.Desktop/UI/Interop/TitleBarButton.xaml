@@ -68,16 +68,26 @@
             </Setter.Value>
         </Setter>
         <Style.Triggers>
-            <Trigger Property="IsMouseOver"
-                     Value="True">
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="IsMouseOver"
+                               Value="True" />
+                    <Condition Property="IsEnabled"
+                               Value="True" />
+                </MultiTrigger.Conditions>
                 <Setter Property="Background"
                         Value="{DynamicResource {x:Static markup:ThemeResourceKeys.ControlFillSecondary}}" />
-            </Trigger>
-            <Trigger Property="IsPressed"
-                     Value="True">
+            </MultiTrigger>
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="IsPressed"
+                               Value="True" />
+                    <Condition Property="IsEnabled"
+                               Value="True" />
+                </MultiTrigger.Conditions>
                 <Setter Property="Background"
                         Value="{DynamicResource {x:Static markup:ThemeResourceKeys.ControlFillTertiary}}" />
-            </Trigger>
+            </MultiTrigger>
             <MultiTrigger>
                 <MultiTrigger.Conditions>
                     <Condition Property="WindowIsActive"
@@ -88,6 +98,11 @@
                 <Setter Property="Opacity"
                         Value="0.33" />
             </MultiTrigger>
+            <Trigger Property="IsEnabled"
+                     Value="False">
+                <Setter Property="Opacity"
+                        Value=".33" />
+            </Trigger>
             <Trigger Property="interop:TitleBarToggle.IsChecked"
                      Value="True">
                 <Setter Property="Background"
@@ -211,7 +226,8 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="interop:TitleBarSymbolButton">
-                    <Grid Background="{TemplateBinding Background}">
+                    <Border Background="{TemplateBinding Background}"
+                            CornerRadius="{TemplateBinding CornerRadius}">
                         <Viewbox Width="18"
                                  Height="18"
                                  HorizontalAlignment="Center"
@@ -221,10 +237,29 @@
                             <ui:SymbolIcon Symbol="{TemplateBinding Symbol}"
                                            Filled="{TemplateBinding Filled}" />
                         </Viewbox>
-                    </Grid>
+                    </Border>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+    </Style>
+
+    <Style x:Key="Style.Button.TitleBar.Back"
+           TargetType="interop:TitleBarSymbolButton"
+           BasedOn="{StaticResource {x:Type interop:TitleBarSymbolButton}}">
+        <Setter Property="Symbol"
+                Value="ArrowLeft48" />
+        <Setter Property="Width"
+                Value="40" />
+        <Setter Property="Height"
+                Value="40" />
+        <Setter Property="CornerRadius"
+                Value="4" />
+        <Setter Property="Margin"
+                Value="6" />
+        <Setter Property="HorizontalAlignment"
+                Value="Left" />
+        <Setter Property="VerticalAlignment"
+                Value="Top" />
     </Style>
 
 </ResourceDictionary>

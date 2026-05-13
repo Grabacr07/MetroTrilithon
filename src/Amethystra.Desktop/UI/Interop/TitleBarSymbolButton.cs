@@ -49,4 +49,31 @@ public class TitleBarSymbolButton : TitleBarButton
     }
 
     #endregion
+
+    #region CornerRadius dependency property
+
+    public static readonly DependencyProperty CornerRadiusProperty
+        = DependencyProperty.Register(
+            nameof(CornerRadius),
+            typeof(CornerRadius),
+            typeof(TitleBarSymbolButton),
+            new FrameworkPropertyMetadata(default(CornerRadius), FrameworkPropertyMetadataOptions.None, HandleCornerRadiusPropertyChanged));
+
+    private static void HandleCornerRadiusPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        var instance = d as TitleBarSymbolButton;
+        instance?.OnCornerRadiusChanged(e);
+    }
+
+    protected virtual void OnCornerRadiusChanged(DependencyPropertyChangedEventArgs e)
+    {
+    }
+
+    public CornerRadius CornerRadius
+    {
+        get => (CornerRadius)this.GetValue(CornerRadiusProperty);
+        set => this.SetValue(CornerRadiusProperty, value);
+    }
+
+    #endregion
 }

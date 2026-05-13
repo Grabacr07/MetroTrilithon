@@ -6,4 +6,4 @@ using System.Windows;
 
 namespace Amethystra.UI.Converters;
 
-public class BooleanToVisibilityConverterEx() : BooleanConverterBase<Visibility>(Visibility.Visible, Visibility.Collapsed);
+public class BooleanToVisibilityConverter() : BooleanConverterBase<Visibility>(Visibility.Visible, Visibility.Collapsed);
