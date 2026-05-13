@@ -38,6 +38,7 @@ public partial class FrameNavigationBehavior : Behavior<Frame>
     private bool _navigatedHooked;
     private bool _navigatingHooked;
     private bool _nextNavigationIsBack;
+    private bool _hasNavigated;
 
     #region Host dependency property
 
@@ -258,12 +259,16 @@ public partial class FrameNavigationBehavior : Behavior<Frame>
             page.DataContext = vm;
         }
 
+        // 最初の Navigated だけはウィンドウ表示時の初期描画に当たるためトランジション抑制。
+        var skipTransition = this._hasNavigated == false;
+        this._hasNavigated = true;
+
         var transition = this._nextNavigationIsBack
             ? this.BackTransition
             : this.ForwardTransition;
         this._nextNavigationIsBack = false;
 
-        if (transition != Transition.None)
+        if (skipTransition == false && transition != Transition.None)
         {
             TransitionAnimationProvider.ApplyTransition(page, transition, this.TransitionDuration);
         }
