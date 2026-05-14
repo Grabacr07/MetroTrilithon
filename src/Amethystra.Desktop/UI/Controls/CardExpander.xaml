@@ -200,19 +200,31 @@
                     </Grid>
 
                     <ControlTemplate.Triggers>
-                        <!-- ヘッダー (ToggleButton) にホバーしたときのみ色変化 -->
+                        <!-- ヘッダー (ToggleButton) にホバーしたときの色変化。
+                             Background と Foreground は常に効かせるが、BorderBrush は折りたたみ時のみ
+                             上書きする。展開中はカード外側の Style が指定する BorderBrush
+                             (例: 背景画像を見せるための Transparent) を尊重する。 -->
                         <DataTrigger Binding="{Binding IsMouseOver, ElementName=ExpanderToggleButton}"
                                      Value="True">
                             <Setter TargetName="ToggleButtonBorder"
                                     Property="Background"
                                     Value="{DynamicResource CardBackgroundPointerOver}" />
-                            <Setter TargetName="ToggleButtonBorder"
-                                    Property="BorderBrush"
-                                    Value="{DynamicResource ControlElevationBorderBrush}" />
                             <Setter TargetName="ExpanderToggleButton"
                                     Property="Foreground"
                                     Value="{DynamicResource CardForegroundPointerOver}" />
                         </DataTrigger>
+
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding IsMouseOver, ElementName=ExpanderToggleButton}"
+                                           Value="True" />
+                                <Condition Binding="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}}"
+                                           Value="False" />
+                            </MultiDataTrigger.Conditions>
+                            <Setter TargetName="ToggleButtonBorder"
+                                    Property="BorderBrush"
+                                    Value="{DynamicResource ControlElevationBorderBrush}" />
+                        </MultiDataTrigger>
 
                         <Trigger Property="IsExpanded"
                                  Value="True">
