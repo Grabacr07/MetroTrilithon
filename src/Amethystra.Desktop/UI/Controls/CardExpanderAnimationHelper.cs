@@ -11,18 +11,24 @@ namespace Amethystra.UI.Controls;
 public class CornerRadiusTopConverter : IMultiValueConverter
 {
     public object Convert(object[] values, Type targetType, object? parameter, CultureInfo culture)
-    {
-        if (values.Length < 2
-            || values[0] is not CornerRadius cornerRadius
-            || values[1] is not bool isExpanded)
-        {
-            return DependencyProperty.UnsetValue;
-        }
+        => values is [CornerRadius cornerRadius, bool isExpanded, ..]
+            ? isExpanded
+                ? new CornerRadius(cornerRadius.TopLeft, cornerRadius.TopRight, 0, 0)
+                : cornerRadius
+            : DependencyProperty.UnsetValue;
 
-        return isExpanded
-            ? new CornerRadius(cornerRadius.TopLeft, cornerRadius.TopRight, 0, 0)
-            : cornerRadius;
-    }
+    public object[] ConvertBack(object value, Type[] targetTypes, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}
+
+public class AnimationFactorToValueConverter : IMultiValueConverter
+{
+    public object Convert(object[] values, Type targetType, object? parameter, CultureInfo culture)
+        => values is [double height, double factor, ..]
+            ? parameter is "negative"
+                ? -(height * factor)
+                : height * factor
+            : DependencyProperty.UnsetValue;
 
     public object[] ConvertBack(object value, Type[] targetTypes, object? parameter, CultureInfo culture)
         => throw new NotSupportedException();
@@ -98,29 +104,51 @@ public static class CardExpanderAnimationHelper
     private static void HandleIsAnimationManagedChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is not Expander expander) return;
-        if ((bool)e.NewValue == false) return;
 
-        if (expander.IsLoaded)
+        var enabled = (bool)e.NewValue;
+        var wasEnabled = (bool)e.OldValue;
+
+        if (enabled && wasEnabled == false)
         {
-            Attach(expander);
-        }
-        else
-        {
+            // Page ナビゲーションで Loaded / Unloaded が繰り返されるため、Loaded は一度きりではなく永続的に購読する。
             expander.Loaded += HandleLoaded;
+            if (expander.IsLoaded)
+            {
+                Attach(expander);
+            }
+        }
+        else if (enabled == false && wasEnabled)
+        {
+            expander.Loaded -= HandleLoaded;
+            Detach(expander);
         }
     }
 
     #endregion
 
+    /// <summary>
+    /// 現在 Attach 済みかどうかを示す内部フラグ。
+    /// Page ナビゲーションのように Loaded / Unloaded が複数回繰り返されるシナリオで、
+    /// 二重 Attach や Attach 漏れを防ぐために使用します。
+    /// </summary>
+    // ReSharper disable once InconsistentNaming
+    private static readonly DependencyProperty IsAttachedProperty
+        = DependencyProperty.RegisterAttached(
+            "IsAttached",
+            typeof(bool),
+            typeof(CardExpanderAnimationHelper),
+            new PropertyMetadata(false));
+
     private static void HandleLoaded(object sender, RoutedEventArgs e)
     {
         if (sender is not Expander expander) return;
-        expander.Loaded -= HandleLoaded;
         Attach(expander);
     }
 
     private static void Attach(Expander expander)
     {
+        // 二重 Attach 防止: 同じ expander への AddValueChanged / Unloaded += を繰り返さない。
+        if ((bool)expander.GetValue(IsAttachedProperty)) return;
         if (expander.Template?.FindName(PART_ContentPresenterBorder, expander) is not Border border) return;
 
         // 初期状態は Storyboard を介さず直接設定します。
@@ -133,15 +161,26 @@ public static class CardExpanderAnimationHelper
 
         // メモリ リークを避けるため Unloaded で descriptor を解除します。
         expander.Unloaded += HandleUnloaded;
+
+        expander.SetValue(IsAttachedProperty, true);
     }
 
     private static void HandleUnloaded(object sender, RoutedEventArgs e)
     {
         if (sender is not Expander expander) return;
+        Detach(expander);
+    }
+
+    private static void Detach(Expander expander)
+    {
+        if ((bool)expander.GetValue(IsAttachedProperty) == false) return;
+
         expander.Unloaded -= HandleUnloaded;
 
         var descriptor = DependencyPropertyDescriptor.FromProperty(Expander.IsExpandedProperty, typeof(Expander));
         descriptor.RemoveValueChanged(expander, HandleIsExpandedChanged);
+
+        expander.SetValue(IsAttachedProperty, false);
     }
 
     private static void HandleIsExpandedChanged(object? sender, EventArgs e)
@@ -156,22 +195,4 @@ public static class CardExpanderAnimationHelper
             storyboard.Begin(expander, template);
         }
     }
-}
-
-public class AnimationFactorToValueConverter : IMultiValueConverter
-{
-    public object Convert(object[] values, Type targetType, object? parameter, CultureInfo culture)
-    {
-        if (values.Length < 2
-            || values[0] is not double height
-            || values[1] is not double factor)
-        {
-            return DependencyProperty.UnsetValue;
-        }
-
-        return parameter is "negative" ? -(height * factor) : height * factor;
-    }
-
-    public object[] ConvertBack(object value, Type[] targetTypes, object? parameter, CultureInfo culture)
-        => throw new NotSupportedException();
 }
