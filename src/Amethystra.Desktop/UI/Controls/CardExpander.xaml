@@ -257,7 +257,7 @@
                             <MultiDataTrigger.Conditions>
                                 <Condition Binding="{Binding IsMouseOver, ElementName=ExpanderToggleButton}"
                                            Value="True" />
-                                <Condition Binding="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}}"
+                                <Condition Binding="{Binding IsChecked, ElementName=ExpanderToggleButton}"
                                            Value="False" />
                             </MultiDataTrigger.Conditions>
                             <Setter TargetName="ToggleButtonBorder"
