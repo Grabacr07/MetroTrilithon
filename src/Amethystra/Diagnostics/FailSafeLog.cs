@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -25,6 +26,7 @@ public static partial class FailSafeLog
     {
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         WriteIndented = false,
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
     };
     private static FilePath _logFilePath = CreatePath(ThisAssembly.Info);
     private static IAssemblyInfo _assemblyInfo = ThisAssembly.Info;
@@ -65,7 +67,11 @@ public static partial class FailSafeLog
             .ChildDirectory(info.Company)
             .ChildDirectory(info.Product)
             .EnsureCreated()
+#if DEBUG
+            .ChildFile($"{Assembly.GetEntryAssembly()?.GetName().Name}.{nameof(FailSafeLog)}.DEBUG.json");
+#else
             .ChildFile($"{Assembly.GetEntryAssembly()?.GetName().Name}.{nameof(FailSafeLog)}.json");
+#endif
 
     private static void Write(LogLevel level, string message, string? category, IReadOnlyDictionary<string, object?>? data, Exception? exception)
         => AppendLine(FailSafeLogEntry.Create(level, message, category, data, exception));

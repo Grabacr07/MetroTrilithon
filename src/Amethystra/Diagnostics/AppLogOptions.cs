@@ -29,5 +29,9 @@ public record struct AppLogOptions(
             .ChildDirectory(info.Company)
             .ChildDirectory(info.Product)
             .EnsureCreated()
+#if DEBUG
+            .ChildFile($"{Assembly.GetEntryAssembly()?.GetName().Name}.DEBUG.log");
+#else
             .ChildFile($"{Assembly.GetEntryAssembly()?.GetName().Name}.log");
+#endif
 }
