@@ -6,3 +6,10 @@ WINDOW_STYLE
 FlashWindowEx
 FLASHWINFO
 FLASHWINFO_FLAGS
+
+// Monitor / display
+HMONITOR
+MONITORINFO
+MonitorFromWindow
+GetMonitorInfo
+MONITOR_FROM_FLAGS
