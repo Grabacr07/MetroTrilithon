@@ -60,6 +60,18 @@ public static class ViewModelExtensions
         {
             source.Subscribe(onNext).AddTo(vm);
         }
+
+        /// <summary>
+        /// Subscribes <paramref name="vm"/> to <paramref name="source"/>, passing
+        /// <paramref name="vm"/> itself as the state argument to <paramref name="onNext"/> so the
+        /// callback can be a <c>static</c> lambda without forming a closure. The subscription is
+        /// automatically tied to the lifetime of <paramref name="vm"/>.
+        /// </summary>
+        public void SubscribeWith<TVm>(TVm vm, Action<T, TVm> onNext)
+            where TVm : ViewModelBase
+        {
+            source.Subscribe(vm, onNext).AddTo(vm);
+        }
     }
 
     extension<T>(ReactiveCommand<T> command)
@@ -72,11 +84,31 @@ public static class ViewModelExtensions
             return command;
         }
 
+        /// <inheritdoc cref="SubscribeWith{T, TVm}(R3.Observable{T}, TVm, System.Action{T, TVm})"/>
+        [MustUseReturnValue]
+        public ReactiveCommand<T> SubscribeWith<TVm>(TVm vm, Action<T, TVm> onNext)
+            where TVm : ViewModelBase
+        {
+            vm.Add(command);
+            command.Subscribe(vm, onNext).AddTo(vm);
+            return command;
+        }
+
         [MustUseReturnValue]
         public ReactiveCommand<T> SubscribeWith(ViewModelBase vm, Func<T, CancellationToken, ValueTask> onNextAsync, AwaitOperation awaitOperation = AwaitOperation.Sequential)
         {
             vm.Add(command);
             command.SubscribeAwait(onNextAsync, awaitOperation).AddTo(vm);
+            return command;
+        }
+
+        /// <inheritdoc cref="SubscribeWith{T, TVm}(R3.Observable{T}, TVm, System.Action{T, TVm})"/>
+        [MustUseReturnValue]
+        public ReactiveCommand<T> SubscribeWith<TVm>(TVm vm, Func<T, TVm, CancellationToken, ValueTask> onNextAsync, AwaitOperation awaitOperation = AwaitOperation.Sequential)
+            where TVm : ViewModelBase
+        {
+            vm.Add(command);
+            command.SubscribeAwait(vm, onNextAsync, awaitOperation).AddTo(vm);
             return command;
         }
     }
