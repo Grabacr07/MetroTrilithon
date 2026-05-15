@@ -70,12 +70,24 @@ public sealed class AssemblyInfoSourceGenerator : IIncrementalGenerator
             var copyright = GetStringAttribute(assembly, "System.Reflection.AssemblyCopyrightAttribute", "Copyright");
             var trademark = GetStringAttribute(assembly, "System.Reflection.AssemblyTrademarkAttribute", "Trademark");
             var informationalVersion = GetStringAttribute(assembly, "System.Reflection.AssemblyInformationalVersionAttribute", "InformationalVersion");
+            var fileVersionRaw = GetStringAttribute(assembly, "System.Reflection.AssemblyFileVersionAttribute", "Version");
 
             if (string.IsNullOrWhiteSpace(product)) product = assembly.Name;
             if (string.IsNullOrWhiteSpace(title)) title = product;
 
-            var v = assembly.Identity.Version;
-            var version = new Version(v.Major, v.Minor, v.Build, v.Revision);
+            // Prefer AssemblyFileVersionAttribute (typically set by MinVer to the product version)
+            // over assembly.Identity.Version (AssemblyVersion), which is intentionally pinned to a
+            // stable value so WPF resource URIs remain valid across builds.
+            Version version;
+            if (string.IsNullOrWhiteSpace(fileVersionRaw) == false && Version.TryParse(fileVersionRaw, out var parsed))
+            {
+                version = new Version(parsed.Major, parsed.Minor, Math.Max(parsed.Build, 0), Math.Max(parsed.Revision, 0));
+            }
+            else
+            {
+                var v = assembly.Identity.Version;
+                version = new Version(v.Major, v.Minor, v.Build, v.Revision);
+            }
 
             return new AssemblyData(
                 title,
