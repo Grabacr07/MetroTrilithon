@@ -3,3 +3,6 @@ SetWindowLong
 GetWindowPlacement
 SetWindowPlacement
 WINDOW_STYLE
+FlashWindowEx
+FLASHWINFO
+FLASHWINFO_FLAGS
