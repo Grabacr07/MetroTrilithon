@@ -15,7 +15,7 @@ namespace Amethystra.UI.Controls;
 /// the destination rect changes. As a result, debounced re-rasterization upgrades pixel
 /// sharpness without producing any visible "shift" in the displayed image.
 /// </summary>
-public class VectorImage : FrameworkElement
+public class RasterizedImage : FrameworkElement
 {
     private static readonly TimeSpan _resolutionUpgradeDebounce = TimeSpan.FromMilliseconds(150);
 
@@ -25,7 +25,7 @@ public class VectorImage : FrameworkElement
         = DependencyProperty.Register(
             nameof(Source),
             typeof(DrawingImage),
-            typeof(VectorImage),
+            typeof(RasterizedImage),
             new FrameworkPropertyMetadata(
                 null,
                 FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsRender,
@@ -33,7 +33,7 @@ public class VectorImage : FrameworkElement
 
     private static void HandleSourceChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is VectorImage instance) instance._cache = null;
+        if (d is RasterizedImage instance) instance._cache = null;
     }
 
     public DrawingImage? Source
@@ -50,7 +50,7 @@ public class VectorImage : FrameworkElement
         = DependencyProperty.Register(
             nameof(Stretch),
             typeof(Stretch),
-            typeof(VectorImage),
+            typeof(RasterizedImage),
             new FrameworkPropertyMetadata(
                 Stretch.Uniform,
                 FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsRender));
@@ -68,7 +68,7 @@ public class VectorImage : FrameworkElement
     private BitmapSource? _cache;
     private int _cachePixelWidth;
 
-    public VectorImage()
+    public RasterizedImage()
     {
         this.Loaded += this.HandleLoaded;
         this.Unloaded += this.HandleUnloaded;

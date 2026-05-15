@@ -11,7 +11,7 @@
           CardExpander's Background / BorderBrush transparent while IsExpanded == True, so
           callers do not need to declare this style locally. It is BasedOn the local
           Style.CardExpander.Fluent so the Fluent visuals are preserved.
-        - The image stack (sharp VectorImage + N blur overlays) lives behind the
+        - The image stack (sharp RasterizedImage + N blur overlays) lives behind the
           ContentPresenter and is gated by IsActive / dimmed by IsDimmed.
     -->
 
@@ -82,7 +82,7 @@
                                 </Style>
                             </Grid.Style>
 
-                            <controls:VectorImage Source="{TemplateBinding Source}"
+                            <controls:RasterizedImage Source="{TemplateBinding Source}"
                                                   Stretch="UniformToFill" />
 
                             <ItemsControl ItemsSource="{Binding Overlays, RelativeSource={RelativeSource TemplatedParent}}">
@@ -97,7 +97,7 @@
                                             <Border.Effect>
                                                 <BlurEffect Radius="{Binding Radius}" />
                                             </Border.Effect>
-                                            <controls:VectorImage Source="{Binding Source, RelativeSource={RelativeSource AncestorType={x:Type controls:CardImageBackdrop}}}"
+                                            <controls:RasterizedImage Source="{Binding Source, RelativeSource={RelativeSource AncestorType={x:Type controls:CardImageBackdrop}}}"
                                                                   Stretch="UniformToFill" />
                                         </Border>
                                     </DataTemplate>
