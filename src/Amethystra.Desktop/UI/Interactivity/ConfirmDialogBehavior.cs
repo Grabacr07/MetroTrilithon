@@ -85,6 +85,11 @@ public class ConfirmDialogBehavior : Behavior<ContentDialogHost>
                     _ => ControlAppearance.Primary,
                 },
             };
+
+            using var canCommitSubscription = msg.CanCommit?
+                .ObserveOnCurrentSynchronizationContext()
+                .Subscribe(v => dialog.IsPrimaryButtonEnabled = v);
+
             var result = await dialog.ShowAsync(ct);
             var confirmed = result == ContentDialogResult.Primary;
 

@@ -1,0 +1,53 @@
+<UserControl x:Class="Amethystra.UI.Interactivity.InputDialogContent"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:interactivity="clr-namespace:Amethystra.UI.Interactivity"
+             xmlns:markup="clr-namespace:Amethystra.UI.Markup"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type={x:Type interactivity:InputDialogModel}}"
+             Width="360">
+    <StackPanel HorizontalAlignment="Stretch">
+        <TextBlock Text="{Binding Description, Mode=OneWay}"
+                   Margin="0,4,0,12"
+                   TextWrapping="Wrap">
+            <TextBlock.Style>
+                <Style TargetType="TextBlock">
+                    <Setter Property="Visibility"
+                            Value="Visible" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Description, Mode=OneWay, TargetNullValue=''}"
+                                     Value="">
+                            <Setter Property="Visibility"
+                                    Value="Collapsed" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBlock.Style>
+        </TextBlock>
+        <ui:TextBox Text="{Binding Text.Value, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                    PlaceholderText="{Binding PlaceholderText, Mode=OneWay, TargetNullValue=''}"
+                    PlaceholderEnabled="{Binding HasPlaceholder, Mode=OneWay}" />
+        <TextBlock Text="{Binding ErrorMessage.Value, Mode=OneWay}"
+                   Foreground="{DynamicResource {x:Static markup:ThemeResourceKeys.SystemFillColorCriticalBrush}}"
+                   FontSize="12"
+                   Margin="0,6,0,0"
+                   TextWrapping="Wrap">
+            <TextBlock.Style>
+                <Style TargetType="TextBlock">
+                    <Setter Property="Visibility"
+                            Value="Visible" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding ErrorMessage.Value, Mode=OneWay, TargetNullValue=''}"
+                                     Value="">
+                            <Setter Property="Visibility"
+                                    Value="Hidden" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBlock.Style>
+        </TextBlock>
+    </StackPanel>
+</UserControl>

@@ -137,8 +137,6 @@
                                  Value="False">
                             <Setter Property="Background"
                                     Value="{DynamicResource CardBackgroundDisabled}" />
-                            <Setter Property="BorderBrush"
-                                    Value="{DynamicResource CardBorderBrushDisabled}" />
                             <Setter TargetName="ContentPresenter"
                                     Property="TextElement.Foreground"
                                     Value="{DynamicResource CardForegroundDisabled}" />
