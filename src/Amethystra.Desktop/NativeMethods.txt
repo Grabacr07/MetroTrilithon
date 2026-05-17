@@ -13,3 +13,55 @@ MONITORINFO
 MonitorFromWindow
 GetMonitorInfo
 MONITOR_FROM_FLAGS
+
+// =============================================================
+// DirectWrite (text format / layout for color emoji rendering)
+// =============================================================
+DWriteCreateFactory
+DWRITE_FACTORY_TYPE
+IDWriteFactory
+IDWriteFactory4
+IDWriteTextFormat
+IDWriteTextLayout
+DWRITE_FONT_WEIGHT
+DWRITE_FONT_STYLE
+DWRITE_FONT_STRETCH
+DWRITE_TEXT_METRICS
+DWRITE_TEXT_ALIGNMENT
+DWRITE_PARAGRAPH_ALIGNMENT
+DWRITE_WORD_WRAPPING
+
+// =============================================================
+// Direct2D (WIC render target for color font rasterization)
+// =============================================================
+D2D1CreateFactory
+D2D1_FACTORY_TYPE
+ID2D1Factory
+ID2D1RenderTarget
+ID2D1SolidColorBrush
+D2D1_RENDER_TARGET_PROPERTIES
+D2D1_RENDER_TARGET_TYPE
+D2D1_RENDER_TARGET_USAGE
+D2D1_FEATURE_LEVEL
+D2D1_PIXEL_FORMAT
+D2D1_DRAW_TEXT_OPTIONS
+D2D1_ALPHA_MODE
+D2D1_COLOR_F
+
+// =============================================================
+// WIC (imaging factory / bitmap for color emoji rasterization)
+// =============================================================
+CLSID_WICImagingFactory
+IWICImagingFactory
+IWICBitmap
+IWICBitmapLock
+WICBitmapCreateCacheOption
+WICBitmapLockFlags
+WICRect
+GUID_WICPixelFormat32bppPBGRA
+
+// =============================================================
+// COM activation
+// =============================================================
+CoCreateInstance
+CLSCTX

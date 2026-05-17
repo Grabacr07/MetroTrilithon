@@ -20,3 +20,4 @@ using Amethystra.Properties;
 [assembly: XmlnsDefinition(Definitions.XmlNamespace, "Amethystra.UI.Interop")]
 [assembly: XmlnsDefinition(Definitions.XmlNamespace, "Amethystra.UI.Markup")]
 [assembly: XmlnsDefinition(Definitions.XmlNamespace, "Amethystra.UI.Navigation")]
+[assembly: XmlnsDefinition(Definitions.XmlNamespace, "Amethystra.UI.Text")]
