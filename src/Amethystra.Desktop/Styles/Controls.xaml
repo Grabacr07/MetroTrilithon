@@ -6,6 +6,7 @@
         <ResourceDictionary Source="/Amethystra.Desktop;component/UI/Controls/CardExpander.xaml" />
         <ResourceDictionary Source="/Amethystra.Desktop;component/UI/Controls/CardImageBackdrop.xaml" />
         <ResourceDictionary Source="/Amethystra.Desktop;component/UI/Interactivity/Interactivity.xaml" />
+        <ResourceDictionary Source="/Amethystra.Desktop;component/UI/Interactivity/AcrylicMenu.xaml" />
         <ResourceDictionary Source="/Amethystra.Desktop;component/UI/Interop/TitleBar.xaml" />
         <ResourceDictionary Source="/Amethystra.Desktop;component/UI/Interop/TitleBarButton.xaml" />
         <ResourceDictionary Source="/Amethystra.Desktop;component/UI/Interop/TitleBarIcon.xaml" />

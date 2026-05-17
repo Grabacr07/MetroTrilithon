@@ -1,0 +1,129 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:markup="clr-namespace:Amethystra.UI.Markup">
+
+    <!--
+        AcrylicContextMenuBehavior / AcrylicPopupBehavior と組み合わせて使う、
+        ContextMenu / MenuItem 用の Style。
+
+        - Background は完全透過にせず Alpha=1 のほぼ透明色を置く
+          (WPF は Brushes.Transparent (#00) を hit-test 不可として扱うため、
+          メニュー領域全体でホバー判定を効かせるには Alpha=1 以上が必要)
+        - 表面の見た目は Behavior が attach する Acrylic に任せる
+        - 配色は WPF-UI のテーマキー (DynamicResource) で Light/Dark に追従
+    -->
+
+    <!--
+        メニュー領域全体の hit-test を有効化するためのほぼ完全透明色。
+        Brushes.Transparent (#00000000) は WPF 内部で hit-test 対象外として
+        扱われるケースがあるため、Alpha=1 を持つ #01000000 を使う。
+    -->
+    <SolidColorBrush x:Key="Brush.HitTestVisible"
+                     Color="#01000000" />
+
+    <!--
+        MenuItem 用 Style。Icon column の灰色帯を消し、ホバー領域を Border 全体に広げる。
+    -->
+    <Style x:Key="Style.MenuItem.Acrylic"
+           TargetType="{x:Type MenuItem}">
+        <Setter Property="Background"
+                Value="{StaticResource Brush.HitTestVisible}" />
+        <Setter Property="Foreground"
+                Value="{DynamicResource {x:Static markup:ThemeResourceKeys.TextFillColorPrimaryBrush}}" />
+        <Setter Property="Padding"
+                Value="0" />
+        <Setter Property="Margin"
+                Value="2,1,2,1" />
+        <Setter Property="HorizontalAlignment"
+                Value="Stretch" />
+        <Setter Property="HorizontalContentAlignment"
+                Value="Left" />
+        <Setter Property="VerticalContentAlignment"
+                Value="Center" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type MenuItem}">
+                    <Border x:Name="PART_OuterBorder"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="4"
+                            Padding="4,2"
+                            MinHeight="32">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"
+                                                  SharedSizeGroup="MenuItemIconColumnGroup" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <ContentPresenter x:Name="PART_Icon"
+                                              Grid.Column="0"
+                                              ContentSource="Icon"
+                                              Margin="6,0,6,0"
+                                              VerticalAlignment="Center" />
+                            <ContentPresenter x:Name="PART_Header"
+                                              Grid.Column="1"
+                                              ContentSource="Header"
+                                              RecognizesAccessKey="True"
+                                              VerticalAlignment="Center"
+                                              Margin="0,4,8,4" />
+                            <TextBlock x:Name="PART_InputGesture"
+                                       Grid.Column="2"
+                                       Text="{TemplateBinding InputGestureText}"
+                                       Margin="8,0,8,0"
+                                       VerticalAlignment="Center"
+                                       Opacity="0.6" />
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver"
+                                 Value="True">
+                            <Setter TargetName="PART_OuterBorder"
+                                    Property="Background"
+                                    Value="{DynamicResource {x:Static markup:ThemeResourceKeys.SubtleFillColorSecondaryBrush}}" />
+                        </Trigger>
+                        <Trigger Property="IsHighlighted"
+                                 Value="True">
+                            <Setter TargetName="PART_OuterBorder"
+                                    Property="Background"
+                                    Value="{DynamicResource {x:Static markup:ThemeResourceKeys.SubtleFillColorSecondaryBrush}}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled"
+                                 Value="False">
+                            <Setter Property="Foreground"
+                                    Value="{DynamicResource {x:Static markup:ThemeResourceKeys.TextFillColorDisabledBrush}}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!--
+        ContextMenu 用 Style。Background は hit-test 用に最小限の色だけ持ち、見た目は
+        Behavior が attach する Acrylic に任せる。SharedSizeScope を有効化して
+        Icon column の幅をメニュー内で揃える。
+    -->
+    <Style x:Key="Style.ContextMenu.Acrylic"
+           TargetType="{x:Type ContextMenu}">
+        <Setter Property="Background"
+                Value="{StaticResource Brush.HitTestVisible}" />
+        <Setter Property="BorderThickness"
+                Value="0" />
+        <Setter Property="Padding"
+                Value="4" />
+        <Setter Property="Grid.IsSharedSizeScope"
+                Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ContextMenu}">
+                    <Border Background="{TemplateBinding Background}"
+                            Padding="{TemplateBinding Padding}">
+                        <StackPanel IsItemsHost="True"
+                                    KeyboardNavigation.DirectionalNavigation="Cycle" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+</ResourceDictionary>

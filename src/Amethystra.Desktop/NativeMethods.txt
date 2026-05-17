@@ -2,7 +2,12 @@ GetWindowLong
 SetWindowLong
 GetWindowPlacement
 SetWindowPlacement
+SetWindowPos
+SET_WINDOW_POS_FLAGS
+ShowWindow
+SHOW_WINDOW_CMD
 WINDOW_STYLE
+WINDOW_EX_STYLE
 FlashWindowEx
 FLASHWINFO
 FLASHWINFO_FLAGS
@@ -11,8 +16,18 @@ FLASHWINFO_FLAGS
 HMONITOR
 MONITORINFO
 MonitorFromWindow
+MonitorFromPoint
 GetMonitorInfo
 MONITOR_FROM_FLAGS
+
+// =============================================================
+// DWM: window attributes / styling
+// =============================================================
+DwmSetWindowAttribute
+DwmExtendFrameIntoClientArea
+DWMWINDOWATTRIBUTE
+DWM_WINDOW_CORNER_PREFERENCE
+MARGINS
 
 // =============================================================
 // DirectWrite (text format / layout for color emoji rendering)
