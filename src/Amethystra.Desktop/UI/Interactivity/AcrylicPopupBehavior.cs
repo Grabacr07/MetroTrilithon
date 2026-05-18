@@ -5,16 +5,17 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using Amethystra.UI.Interop;
 using Microsoft.Xaml.Behaviors;
+using Wpf.Ui.Appearance;
 
 namespace Amethystra.UI.Interactivity;
 
 /// <summary>
-/// 標準 <see cref="Popup"/> に Acrylic blur を適用します。
+/// <see cref="Popup"/> に Acrylic blur を適用します。
 /// </summary>
 /// <remarks>
 /// <para>
-/// アタッチ先の <see cref="Popup"/> が開かれたタイミングで、<see cref="Popup.Child"/> をホストする HWND に対して
-/// <see cref="AcrylicWindowEffect"/> 経由で Acrylic を適用します。tint カラーは <c>Wpf.Ui.Appearance.ApplicationThemeManager</c>
+/// アタッチ先の <see cref="Popup"/> が開かれたタイミングで、ホスト HWND に対して
+/// <see cref="AcrylicWindowEffect"/> 経由で Acrylic を適用します。tint カラーは <see cref="ApplicationThemeManager"/>
 /// の現在テーマに追従します。
 /// </para>
 /// <para>
@@ -25,7 +26,7 @@ namespace Amethystra.UI.Interactivity;
 /// (<c>SetWindowCompositionAttribute</c> + <c>ACCENT_ENABLE_ACRYLICBLURBEHIND</c>) を使用します。
 /// </para>
 /// </remarks>
-public class AcrylicPopupBehavior : Behavior<Popup>
+internal class AcrylicPopupBehavior : Behavior<Popup>
 {
     /// <inheritdoc />
     protected override void OnAttached()

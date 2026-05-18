@@ -1,9 +1,11 @@
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
 using System.Windows.Media;
 using Amethystra.UI.Interop;
 using Microsoft.Xaml.Behaviors;
+using Wpf.Ui.Appearance;
 
 namespace Amethystra.UI.Interactivity;
 
@@ -13,7 +15,7 @@ namespace Amethystra.UI.Interactivity;
 /// <remarks>
 /// <para>
 /// アタッチ先の <see cref="ContextMenu"/> が開かれたタイミングで、ホスト HWND に対して
-/// <see cref="AcrylicWindowEffect"/> 経由で Acrylic を適用します。tint カラーは <c>Wpf.Ui.Appearance.ApplicationThemeManager</c>
+/// <see cref="AcrylicWindowEffect"/> 経由で Acrylic を適用します。tint カラーは <see cref="ApplicationThemeManager"/>
 /// の現在テーマに追従します。
 /// </para>
 /// <para>
@@ -24,7 +26,7 @@ namespace Amethystra.UI.Interactivity;
 /// XAML 側では <c>Style.ContextMenu.Acrylic</c> および <c>Style.MenuItem.Acrylic</c> を併用してください。
 /// </para>
 /// </remarks>
-public class AcrylicContextMenuBehavior : Behavior<ContextMenu>
+internal class AcrylicContextMenuBehavior : Behavior<ContextMenu>
 {
     /// <inheritdoc />
     protected override void OnAttached()

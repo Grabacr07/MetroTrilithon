@@ -31,7 +31,7 @@ public static class AcrylicWindowEffect
     /// </summary>
     /// <param name="hwnd">適用対象のウィンドウ ハンドル。</param>
     /// <remarks>
-    /// tint カラーは <c>Wpf.Ui.Appearance.ApplicationThemeManager</c> の現在テーマに追従し、
+    /// tint カラーは <see cref="ApplicationThemeManager"/> の現在テーマに追従し、
     /// Dark 時は黒系、Light 時は白系に切り替えます。
     /// </remarks>
     public static unsafe void Apply(IntPtr hwnd)
@@ -58,7 +58,7 @@ public static class AcrylicWindowEffect
         // アプリ全体のテーマに合わせる。
         var isDark = IsDarkTheme();
         var tintRgb = isDark ? 0x00000000u : 0x00FFFFFFu;
-        var policy = new AccentPolicy
+        var policy = new AccentPolicy()
         {
             AccentState = AccentState.ACCENT_ENABLE_ACRYLICBLURBEHIND,
             AccentFlags = AccentFlags.None,
