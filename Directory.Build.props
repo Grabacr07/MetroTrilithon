@@ -1,0 +1,14 @@
+<Project>
+
+  <!--
+    Stop the upward Directory.Build.props search at this repository's root so that
+    projects without a closer Directory.Build.props (e.g. tools/ThemeResourceKeyGen)
+    never inherit build settings from a host repository when Amethystra is embedded
+    as a git submodule. Without this barrier, a host repository's props would be
+    applied to those projects — e.g. injecting a MinVer PackageReference whose
+    per-node version cache is keyed only on MinVer's inputs, leaking this
+    repository's computed version into the host's assemblies.
+    Projects under src/ are unaffected; they resolve src/Directory.Build.props first.
+  -->
+
+</Project>
