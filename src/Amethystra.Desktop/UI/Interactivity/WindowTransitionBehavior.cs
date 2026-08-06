@@ -120,16 +120,23 @@ public partial class WindowTransitionBehavior : Behavior<FrameworkElement>
 
             window.DataContext = request.ViewModel;
 
-            if (request.Mode == WindowTransitionMode.ShowDialog)
+            switch (request.Mode)
             {
-                window.Owner = Window.GetWindow(this.AssociatedObject);
-                window.Closed += (_, _) => request.Complete(window.DialogResult);
-                window.ShowDialog();
-            }
-            else
-            {
-                window.Closed += (_, _) => request.Complete(null);
-                window.Show();
+                case WindowTransitionMode.ShowDialog:
+                    window.Owner = Window.GetWindow(this.AssociatedObject);
+                    window.Closed += (_, _) => request.Complete(window.DialogResult);
+                    window.ShowDialog();
+                    break;
+
+                case WindowTransitionMode.Replace:
+                    window.Closed += (_, _) => request.Complete(null);
+                    this.ReplaceWindow(window);
+                    break;
+
+                default:
+                    window.Closed += (_, _) => request.Complete(null);
+                    window.Show();
+                    break;
             }
         }
         catch (Exception ex)
@@ -139,5 +146,27 @@ public partial class WindowTransitionBehavior : Behavior<FrameworkElement>
         }
 
         return ValueTask.CompletedTask;
+    }
+
+    /// <summary>
+    /// 新しいウィンドウを表示し、遷移元のウィンドウを閉じます。
+    /// </summary>
+    private void ReplaceWindow(Window window)
+    {
+        var source = Window.GetWindow(this.AssociatedObject);
+        var application = Application.Current;
+
+        // 遷移元が Application.MainWindow の場合、それを閉じると
+        // ShutdownMode.OnMainWindowClose によってアプリケーションが終了してしまうため、
+        // 閉じる前に新しいウィンドウへ MainWindow の役割を引き継がせる。
+        var promotesToMainWindow = source != null
+            && application != null
+            && ReferenceEquals(application.MainWindow, source);
+
+        window.Show();
+
+        if (promotesToMainWindow) application!.MainWindow = window;
+
+        source?.Close();
     }
 }

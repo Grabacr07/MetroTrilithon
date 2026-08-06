@@ -14,6 +14,12 @@ public static class WindowTransitionExtensions
         public void Show(object viewModel)
             => subject.OnNext(new WindowTransitionRequest(viewModel));
 
+        /// <summary>
+        /// 新しいウィンドウを表示し、遷移元のウィンドウを閉じます。
+        /// </summary>
+        public void Replace(object viewModel)
+            => subject.OnNext(new WindowTransitionRequest(viewModel, WindowTransitionMode.Replace));
+
         [MustUseReturnValue]
         public Task<bool?> ShowDialogAsync(
             object viewModel,

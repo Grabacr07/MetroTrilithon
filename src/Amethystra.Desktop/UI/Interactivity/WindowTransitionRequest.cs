@@ -44,4 +44,11 @@ public enum WindowTransitionMode
     /// モーダルダイアログとして表示します。
     /// </summary>
     ShowDialog,
+
+    /// <summary>
+    /// モードレスウィンドウとして表示し、遷移元のウィンドウを閉じます。
+    /// 遷移元が <see cref="System.Windows.Application.MainWindow"/> であった場合は、
+    /// 閉じる前に新しいウィンドウへその役割を引き継ぎます。
+    /// </summary>
+    Replace,
 }
