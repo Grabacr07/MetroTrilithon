@@ -60,6 +60,19 @@
                                               ContentSource="Icon"
                                               Margin="6,0,6,0"
                                               VerticalAlignment="Center" />
+                            <Path x:Name="CheckGlyph"
+                                  Grid.Column="0"
+                                  Width="14"
+                                  Height="14"
+                                  Margin="6,0,6,0"
+                                  VerticalAlignment="Center"
+                                  Data="M2,7.5 L5.5,11 L12,3.5"
+                                  Stroke="{TemplateBinding Foreground}"
+                                  StrokeThickness="1.6"
+                                  StrokeStartLineCap="Round"
+                                  StrokeEndLineCap="Round"
+                                  StrokeLineJoin="Round"
+                                  Visibility="Collapsed" />
                             <ContentPresenter x:Name="PART_Header"
                                               Grid.Column="1"
                                               ContentSource="Header"
@@ -75,6 +88,12 @@
                         </Grid>
                     </Border>
                     <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked"
+                                 Value="True">
+                            <Setter TargetName="CheckGlyph"
+                                    Property="Visibility"
+                                    Value="Visible" />
+                        </Trigger>
                         <Trigger Property="IsMouseOver"
                                  Value="True">
                             <Setter TargetName="PART_OuterBorder"
