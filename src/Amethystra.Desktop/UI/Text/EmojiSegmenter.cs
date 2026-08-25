@@ -9,6 +9,7 @@ namespace Amethystra.UI.Text;
 /// <remarks>
 /// UTS #51 の完全な実装ではなく、UI 上でユーザーが入力する一般的な絵文字を正しく 1 セグメントに束ねることを目的としています。
 /// ZWJ シーケンス、VS-16、肌色トーン修飾子、地域インジケーター (国旗) のペア、結合キーキャップまでをサポートします。
+/// IME 変換中のテキストなどに現れる対にならないサロゲートは、例外とせず通常テキストとして扱います。
 /// </remarks>
 public static class EmojiSegmenter
 {
@@ -42,7 +43,13 @@ public static class EmojiSegmenter
 
         while (i < text.Length)
         {
-            var rune = Rune.GetRuneAt(text, i);
+            // 対にならないサロゲートはスカラー値を構成しないため、1 コード単位を通常テキストとして読み進める。
+            if (Rune.TryGetRuneAt(text, i, out var rune) == false)
+            {
+                i++;
+                continue;
+            }
+
             var consumed = rune.Utf16SequenceLength;
 
             if (IsEmojiClusterStart(text, i, rune) == false)
@@ -64,7 +71,9 @@ public static class EmojiSegmenter
             // 修飾子・結合子・後続絵文字を貪欲に取り込む。
             while (i < text.Length)
             {
-                var next = Rune.GetRuneAt(text, i);
+                // 対にならないサロゲートに達したらクラスタを打ち切る。
+                if (Rune.TryGetRuneAt(text, i, out var next) == false) break;
+
                 var nextLen = next.Utf16SequenceLength;
 
                 switch (next.Value)
@@ -90,7 +99,7 @@ public static class EmojiSegmenter
                     var after = i + nextLen;
                     if (after >= text.Length) break;
 
-                    var afterRune = Rune.GetRuneAt(text, after);
+                    if (Rune.TryGetRuneAt(text, after, out var afterRune) == false) break;
                     if (IsEmojiBase(afterRune) == false) break;
 
                     i = after + afterRune.Utf16SequenceLength;
@@ -135,7 +144,7 @@ public static class EmojiSegmenter
         var nextIndex = index + rune.Utf16SequenceLength;
         if (nextIndex >= text.Length) return false;
 
-        var next = Rune.GetRuneAt(text, nextIndex);
+        if (Rune.TryGetRuneAt(text, nextIndex, out var next) == false) return false;
         return next.Value is 0xFE0F or 0x20E3;
     }
 
