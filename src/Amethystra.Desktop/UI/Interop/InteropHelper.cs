@@ -57,11 +57,21 @@ internal static class InteropHelper
     {
         if (lParam == IntPtr.Zero) return false;
 
-        var mousePosScreen = new Point((short)(lParam.ToInt32() & 0xFFFF), (short)(lParam.ToInt32() >> 16));
+        var mousePosScreen = GetScreenPoint(lParam);
         var bounds = new Rect(new Point(), element.RenderSize);
         var mousePosRelative = element.PointFromScreen(mousePosScreen);
 
         return bounds.Contains(mousePosRelative);
+    }
+
+    /// <summary>
+    /// <c>WM_NCHITTEST</c> などの lParam に格納されたスクリーン座標を取得します。
+    /// </summary>
+    public static Point GetScreenPoint(IntPtr lParam)
+    {
+        // 下位 16 ビットが X、上位 16 ビットが Y の符号付き値 (マルチモニターで負になりうる)
+        var value = unchecked((int)(long)lParam);
+        return new Point((short)(value & 0xFFFF), (short)((value >> 16) & 0xFFFF));
     }
 
     public static Exception CreateExceptionForMissingParentWindow()

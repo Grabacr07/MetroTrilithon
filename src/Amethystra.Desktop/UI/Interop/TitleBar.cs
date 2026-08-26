@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Interop;
+using System.Windows.Shell;
 using Windows.Win32;
 using Amethystra.Disposables;
 using Amethystra.UI.Converters;
@@ -308,11 +309,37 @@ public class TitleBar : ContentControl, IWindowProcedure
         switch ((WM)msg)
         {
             case WM.NCHITTEST when this.Contains(lParam):
+                // 上端のリサイズ境界内では HTCAPTION を返さず、
+                // 既定のヒットテスト (WindowChrome による HTTOP など) に委ねる
+                if (IsInTopResizeBorder(this.Window, lParam)) return IntPtr.Zero;
+
                 handled = true;
                 return (IntPtr)NCHITTEST.HTCAPTION;
 
             default:
                 return IntPtr.Zero;
+        }
+    }
+
+    /// <summary>
+    /// 指定したスクリーン座標が、ウィンドウ上端のリサイズ境界
+    /// (<see cref="WindowChrome.ResizeBorderThickness"/> の上端の範囲) に含まれるかどうかを判定します。
+    /// </summary>
+    private static bool IsInTopResizeBorder(Window window, IntPtr lParam)
+    {
+        if (window.WindowState != WindowState.Normal) return false;
+
+        var chrome = WindowChrome.GetWindowChrome(window);
+        if (chrome == null || chrome.ResizeBorderThickness.Top <= 0) return false;
+
+        try
+        {
+            var clientPoint = window.PointFromScreen(InteropHelper.GetScreenPoint(lParam));
+            return clientPoint.Y < chrome.ResizeBorderThickness.Top;
+        }
+        catch (InvalidOperationException)
+        {
+            return false;
         }
     }
 }
