@@ -231,10 +231,9 @@ public sealed class EmojiBitmapCache : IDisposable
 
         PInvoke.DWriteCreateFactory(
             DWRITE_FACTORY_TYPE.DWRITE_FACTORY_TYPE_SHARED,
-            typeof(IDWriteFactory).GUID,
-            out var factory);
+            out IDWriteFactory factory);
 
-        this._dWriteFactory = (IDWriteFactory)factory;
+        this._dWriteFactory = factory;
         return this._dWriteFactory;
     }
 
