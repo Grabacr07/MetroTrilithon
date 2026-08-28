@@ -142,4 +142,54 @@ public sealed class EmojiSegmenterTest
 
         Assert.AreEqual(text, string.Concat(segments.Select(x => x.Text)));
     }
+
+    [TestMethod]
+    public void ContainsEmoji_ReturnsFalse_WhenTextIsNullOrEmpty()
+    {
+        Assert.IsFalse(EmojiSegmenter.ContainsEmoji(null));
+        Assert.IsFalse(EmojiSegmenter.ContainsEmoji(""));
+    }
+
+    [TestMethod]
+    public void ContainsEmoji_ReturnsFalse_ForPlainText()
+    {
+        Assert.IsFalse(EmojiSegmenter.ContainsEmoji("00:30 コハル EX"));
+        Assert.IsFalse(EmojiSegmenter.ContainsEmoji("3:50.000 アリス → 本体 (→2)"));
+    }
+
+    [TestMethod]
+    public void ContainsEmoji_ReturnsTrue_ForEmojiSequences()
+    {
+        Assert.IsTrue(EmojiSegmenter.ContainsEmoji("🚩の時"));
+        Assert.IsTrue(EmojiSegmenter.ContainsEmoji("1️⃣"));
+        Assert.IsTrue(EmojiSegmenter.ContainsEmoji("➡ 本体"));
+        Assert.IsTrue(EmojiSegmenter.ContainsEmoji("🇯🇵"));
+    }
+
+    // ContainsEmoji の契約: false を返した文字列は Split が絵文字セグメントを生まない
+    // (true 側は保守的な過剰検出を許す)。
+    [TestMethod]
+    public void ContainsEmoji_NeverMissesEmojiSegments()
+    {
+        string[] samples =
+        [
+            "00:30 コハル EX",
+            "🚩の時",
+            "👨‍👩‍👧",
+            "1️⃣",
+            "🇯🇵",
+            "あ\uD83D🚩",
+            "\uD83D",
+            "3:14.400 サツキ // NS タイミング制御",
+        ];
+
+        foreach (var sample in samples)
+        {
+            if (EmojiSegmenter.ContainsEmoji(sample)) continue;
+
+            Assert.IsTrue(
+                EmojiSegmenter.Split(sample).All(x => x.Kind == EmojiSegmenter.SegmentKind.Text),
+                $"ContainsEmoji が false を返した \"{sample}\" から絵文字セグメントが生成されました。");
+        }
+    }
 }

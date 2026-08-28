@@ -37,6 +37,21 @@ public static class EmojiText
     {
         if (d is not TextBlock textBlock) return;
 
+        // 絵文字を含まないテキストは標準のテキスト描画パスへそのまま流す。
+        // 遅延再構築・Loaded 購読・DPI 追跡がすべて不要になり、リスト行の大量生成時のコストを抑える。
+        var text = (string?)e.NewValue;
+        if (EmojiSegmenter.ContainsEmoji(text) == false)
+        {
+            textBlock.Loaded -= HandleLoaded;
+            textBlock.Unloaded -= HandleUnloaded;
+            AbortPendingRebuild(textBlock);
+            DetachDpiHandler(textBlock);
+
+            textBlock.SetValue(LastRenderedTextProperty, text);
+            textBlock.Text = text ?? string.Empty;
+            return;
+        }
+
         // Loaded / Unloaded を一度だけ購読する。複数回 HandleTextChanged が走っても二重登録にならないよう先に解除する。
         textBlock.Loaded -= HandleLoaded;
         textBlock.Loaded += HandleLoaded;
@@ -93,11 +108,7 @@ public static class EmojiText
         // Loaded 時点では Measure/Arrange パスを抜けているので同期実行で OK。
         // HandleTextChanged 経由で Background キューに積まれた再構築要求があれば破棄し、ここで先に処理する。
         // これによって「ウィンドウ表示直後に Inlines が空 → 一拍遅れて埋まる」というチラつきを抑える。
-        if (textBlock.GetValue(PendingRebuildProperty) is DispatcherOperation pending)
-        {
-            pending.Abort();
-            textBlock.ClearValue(PendingRebuildProperty);
-        }
+        AbortPendingRebuild(textBlock);
 
         var text = GetText(textBlock);
         textBlock.SetValue(LastRenderedTextProperty, text);
@@ -108,13 +119,19 @@ public static class EmojiText
     {
         if (sender is not TextBlock textBlock) return;
 
-        if (textBlock.GetValue(PendingRebuildProperty) is DispatcherOperation pending)
-        {
-            pending.Abort();
-            textBlock.ClearValue(PendingRebuildProperty);
-        }
-
+        AbortPendingRebuild(textBlock);
         DetachDpiHandler(textBlock);
+    }
+
+    /// <summary>
+    /// キューに積まれている再構築オペレーションがあれば破棄します。
+    /// </summary>
+    private static void AbortPendingRebuild(TextBlock textBlock)
+    {
+        if (textBlock.GetValue(PendingRebuildProperty) is not DispatcherOperation pending) return;
+
+        pending.Abort();
+        textBlock.ClearValue(PendingRebuildProperty);
     }
 
     private static void AttachDpiHandler(TextBlock textBlock)

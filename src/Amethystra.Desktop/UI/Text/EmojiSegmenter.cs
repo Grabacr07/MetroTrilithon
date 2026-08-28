@@ -31,6 +31,32 @@ public static class EmojiSegmenter
     public readonly record struct Segment(string Text, SegmentKind Kind);
 
     /// <summary>
+    /// 入力文字列が絵文字セグメントを含み得るかどうかを判定します。
+    /// </summary>
+    /// <remarks>
+    /// <see cref="Split"/> のアロケーションを避けるための軽量な事前スキャンです。判定は保守的で、
+    /// 絵文字にならない記号でも <see langword="true"/> を返すことがありますが、
+    /// <see langword="false"/> を返した文字列が絵文字セグメントを生むことはありません。
+    /// </remarks>
+    public static bool ContainsEmoji(string? text)
+    {
+        if (string.IsNullOrEmpty(text)) return false;
+
+        foreach (var c in text)
+        {
+            // サロゲート (補助平面の絵文字) と、BMP の絵文字関連範囲 (Miscellaneous Technical 〜
+            // Miscellaneous Symbols and Arrows) を保守的にまとめて検出する
+            if (char.IsSurrogate(c)) return true;
+            if (c is >= '\u2300' and <= '\u2BFF') return true;
+
+            // 結合子 (ZWJ)・結合キーキャップ・異体字セレクタは、直前の文字を絵文字クラスタの起点にし得る
+            if (c is '\u200D' or '\u20E3' or '\uFE0E' or '\uFE0F') return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// 入力文字列をテキストセグメントと絵文字セグメントに分割します。
     /// </summary>
     public static IReadOnlyList<Segment> Split(string? text)
