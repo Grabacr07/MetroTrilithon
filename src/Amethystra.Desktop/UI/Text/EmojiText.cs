@@ -67,6 +67,8 @@ public static class EmojiText
 
     #endregion
 
+    #region DpiHandler attached property
+
     /// <summary>
     /// 各 <see cref="TextBlock"/> が現在購読している <see cref="Window.DpiChanged"/> ハンドラを保持します。
     /// </summary>
@@ -80,107 +82,6 @@ public static class EmojiText
             typeof(DpiChangedEventHandler),
             typeof(EmojiText),
             new PropertyMetadata(null));
-
-    /// <summary>
-    /// 各 <see cref="TextBlock"/> が現在キューに積んでいる再構築の <see cref="DispatcherOperation"/> を保持します。
-    /// </summary>
-    /// <remarks>
-    /// 新しい再構築要求が来たら旧オペレーションを <see cref="DispatcherOperation.Abort"/> して、
-    /// 高速スクロール中にディスパッチャキューが肥大化するのを防ぎます。
-    /// </remarks>
-    // ReSharper disable once InconsistentNaming
-    private static readonly DependencyProperty PendingRebuildProperty
-        = DependencyProperty.RegisterAttached(
-            nameof(PendingRebuildProperty).GetPropertyName(),
-            typeof(DispatcherOperation),
-            typeof(EmojiText),
-            new PropertyMetadata(null));
-
-    /// <summary>
-    /// 最後にレンダリングしたテキストを保持します。
-    /// </summary>
-    /// <remarks>
-    /// 値が変わっていないときの無意味な再構築をスキップするために使用します。
-    /// </remarks>
-    // ReSharper disable once InconsistentNaming
-    private static readonly DependencyProperty LastRenderedTextProperty
-        = DependencyProperty.RegisterAttached(
-            nameof(LastRenderedTextProperty).GetPropertyName(),
-            typeof(string),
-            typeof(EmojiText),
-            new PropertyMetadata(null));
-
-    /// <summary>
-    /// 最後にレンダリングした実効スケール (デバイス DPI × 祖先の LayoutTransform の累積スケール) を保持します。
-    /// 未レンダリングの場合は 0 です。
-    /// </summary>
-    /// <remarks>
-    /// スケールが変わっていないときの無意味な再構築をスキップするために使用します。
-    /// </remarks>
-    // ReSharper disable once InconsistentNaming
-    private static readonly DependencyProperty LastRenderedScaleProperty
-        = DependencyProperty.RegisterAttached(
-            nameof(LastRenderedScaleProperty).GetPropertyName(),
-            typeof(double),
-            typeof(EmojiText),
-            new PropertyMetadata(0.0));
-
-    /// <summary>
-    /// 各 <see cref="TextBlock"/> が現在購読している <see cref="UIElement.LayoutUpdated"/> ハンドラを保持します。
-    /// </summary>
-    /// <remarks>
-    /// ズームなどの LayoutTransform 変更で実効スケールが変わったことを検知するための購読で、Unloaded 時や
-    /// 絵文字を含まないテキストへの変更時に確実に解除できるよう、ハンドラ参照を要素自身に紐付けて保管します。
-    /// </remarks>
-    // ReSharper disable once InconsistentNaming
-    private static readonly DependencyProperty LayoutUpdatedHandlerProperty
-        = DependencyProperty.RegisterAttached(
-            nameof(LayoutUpdatedHandlerProperty).GetPropertyName(),
-            typeof(EventHandler),
-            typeof(EmojiText),
-            new PropertyMetadata(null));
-
-    /// <summary>
-    /// 実効スケールの比較に使う許容誤差。この差を超えたときのみ再構築します。
-    /// </summary>
-    private const double _scaleEpsilon = 0.001;
-
-    private static void HandleLoaded(object sender, RoutedEventArgs e)
-    {
-        if (sender is not TextBlock textBlock) return;
-
-        AttachDpiHandler(textBlock);
-        AttachLayoutUpdatedHandler(textBlock);
-
-        // Loaded 時点では Measure/Arrange パスを抜けているので同期実行で OK。
-        // HandleTextChanged 経由で Background キューに積まれた再構築要求があれば破棄し、ここで先に処理する。
-        // これによって「ウィンドウ表示直後に Inlines が空 → 一拍遅れて埋まる」というチラつきを抑える。
-        AbortPendingRebuild(textBlock);
-
-        var text = GetText(textBlock);
-        textBlock.SetValue(LastRenderedTextProperty, text);
-        RebuildInlines(textBlock, text);
-    }
-
-    private static void HandleUnloaded(object sender, RoutedEventArgs e)
-    {
-        if (sender is not TextBlock textBlock) return;
-
-        AbortPendingRebuild(textBlock);
-        DetachDpiHandler(textBlock);
-        DetachLayoutUpdatedHandler(textBlock);
-    }
-
-    /// <summary>
-    /// キューに積まれている再構築オペレーションがあれば破棄します。
-    /// </summary>
-    private static void AbortPendingRebuild(TextBlock textBlock)
-    {
-        if (textBlock.GetValue(PendingRebuildProperty) is not DispatcherOperation pending) return;
-
-        pending.Abort();
-        textBlock.ClearValue(PendingRebuildProperty);
-    }
 
     private static void AttachDpiHandler(TextBlock textBlock)
     {
@@ -205,6 +106,97 @@ public static class EmojiText
 
         textBlock.ClearValue(DpiHandlerProperty);
     }
+
+    #endregion
+
+    #region PendingRebuild attached property
+
+    /// <summary>
+    /// 各 <see cref="TextBlock"/> が現在キューに積んでいる再構築の <see cref="DispatcherOperation"/> を保持します。
+    /// </summary>
+    /// <remarks>
+    /// 新しい再構築要求が来たら旧オペレーションを <see cref="DispatcherOperation.Abort"/> して、
+    /// 高速スクロール中にディスパッチャキューが肥大化するのを防ぎます。
+    /// </remarks>
+    // ReSharper disable once InconsistentNaming
+    private static readonly DependencyProperty PendingRebuildProperty
+        = DependencyProperty.RegisterAttached(
+            nameof(PendingRebuildProperty).GetPropertyName(),
+            typeof(DispatcherOperation),
+            typeof(EmojiText),
+            new PropertyMetadata(null));
+
+    /// <summary>
+    /// キューに積まれている再構築オペレーションがあれば破棄します。
+    /// </summary>
+    private static void AbortPendingRebuild(TextBlock textBlock)
+    {
+        if (textBlock.GetValue(PendingRebuildProperty) is not DispatcherOperation pending) return;
+
+        pending.Abort();
+        textBlock.ClearValue(PendingRebuildProperty);
+    }
+
+    #endregion
+
+    #region LastRenderedText attached property
+
+    /// <summary>
+    /// 最後にレンダリングしたテキストを保持します。
+    /// </summary>
+    /// <remarks>
+    /// 値が変わっていないときの無意味な再構築をスキップするために使用します。
+    /// </remarks>
+    // ReSharper disable once InconsistentNaming
+    private static readonly DependencyProperty LastRenderedTextProperty
+        = DependencyProperty.RegisterAttached(
+            nameof(LastRenderedTextProperty).GetPropertyName(),
+            typeof(string),
+            typeof(EmojiText),
+            new PropertyMetadata(null));
+
+    #endregion
+
+    #region LastRenderedScale attached property
+
+    /// <summary>
+    /// 最後にレンダリングした実効スケール (デバイス DPI × 祖先の LayoutTransform の累積スケール) を保持します。
+    /// 未レンダリングの場合は 0 です。
+    /// </summary>
+    /// <remarks>
+    /// スケールが変わっていないときの無意味な再構築をスキップするために使用します。
+    /// </remarks>
+    // ReSharper disable once InconsistentNaming
+    private static readonly DependencyProperty LastRenderedScaleProperty
+        = DependencyProperty.RegisterAttached(
+            nameof(LastRenderedScaleProperty).GetPropertyName(),
+            typeof(double),
+            typeof(EmojiText),
+            new PropertyMetadata(0.0));
+
+    /// <summary>
+    /// 実効スケールの比較に使う許容誤差。この差を超えたときのみ再構築します。
+    /// </summary>
+    private const double _scaleEpsilon = 0.001;
+
+    #endregion
+
+    #region LayoutUpdatedHandler attached property
+
+    /// <summary>
+    /// 各 <see cref="TextBlock"/> が現在購読している <see cref="UIElement.LayoutUpdated"/> ハンドラを保持します。
+    /// </summary>
+    /// <remarks>
+    /// ズームなどの LayoutTransform 変更で実効スケールが変わったことを検知するための購読で、Unloaded 時や
+    /// 絵文字を含まないテキストへの変更時に確実に解除できるよう、ハンドラ参照を要素自身に紐付けて保管します。
+    /// </remarks>
+    // ReSharper disable once InconsistentNaming
+    private static readonly DependencyProperty LayoutUpdatedHandlerProperty
+        = DependencyProperty.RegisterAttached(
+            nameof(LayoutUpdatedHandlerProperty).GetPropertyName(),
+            typeof(EventHandler),
+            typeof(EmojiText),
+            new PropertyMetadata(null));
 
     private static void AttachLayoutUpdatedHandler(TextBlock textBlock)
     {
@@ -245,6 +237,34 @@ public static class EmojiText
         if (Math.Abs(scale - lastScale) < _scaleEpsilon) return;
 
         ScheduleRebuild(textBlock);
+    }
+
+    #endregion
+
+    private static void HandleLoaded(object sender, RoutedEventArgs e)
+    {
+        if (sender is not TextBlock textBlock) return;
+
+        AttachDpiHandler(textBlock);
+        AttachLayoutUpdatedHandler(textBlock);
+
+        // Loaded 時点では Measure/Arrange パスを抜けているので同期実行で OK。
+        // HandleTextChanged 経由で Background キューに積まれた再構築要求があれば破棄し、ここで先に処理する。
+        // これによって「ウィンドウ表示直後に Inlines が空 → 一拍遅れて埋まる」というチラつきを抑える。
+        AbortPendingRebuild(textBlock);
+
+        var text = GetText(textBlock);
+        textBlock.SetValue(LastRenderedTextProperty, text);
+        RebuildInlines(textBlock, text);
+    }
+
+    private static void HandleUnloaded(object sender, RoutedEventArgs e)
+    {
+        if (sender is not TextBlock textBlock) return;
+
+        AbortPendingRebuild(textBlock);
+        DetachDpiHandler(textBlock);
+        DetachLayoutUpdatedHandler(textBlock);
     }
 
     /// <summary>
@@ -356,7 +376,7 @@ public static class EmojiText
         var scale = source.CompositionTarget.TransformToDevice.M11;
         if (scale <= 0) scale = 1.0;
 
-        if (source.RootVisual is Visual root && ReferenceEquals(root, visual) == false)
+        if (source.RootVisual is { } root && ReferenceEquals(root, visual) == false)
         {
             try
             {
