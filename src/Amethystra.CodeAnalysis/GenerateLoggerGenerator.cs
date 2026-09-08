@@ -132,10 +132,15 @@ public sealed class GenerateLoggerGenerator : IIncrementalGenerator
 
         sb.Append(indent).AppendLine("{");
 
-        var fieldIndent = indent + "    ";
+        var memberIndent = indent + "    ";
 
-        sb.Append(fieldIndent)
-            .Append("private static readonly global::Amethystra.Diagnostics.AppLog.Logger Log = ")
+        // Log はキャッシュするフィールドではなく、アクセスごとに評価する式形式のプロパティとして生成する。
+        // AppLog.Default は CreateDefault が呼ばれるまで NullAppLog を返すため、静的フィールドで捕捉すると
+        // それより先に静的初期化された型 (静的コンストラクター内で CreateDefault を呼ぶ App など) のログが永久に捨てられる。
+        // Logger は参照 2 つを持つだけの readonly struct で、毎回生成しても割り当ては発生しない。
+        // また、フィールドにすると lock の内外から使う型で ReSharper の同期検査 (InconsistentlySynchronizedField) が偽陽性を出す
+        sb.Append(memberIndent)
+            .Append("private static global::Amethystra.Diagnostics.AppLog.Logger Log => ")
             .Append(GetLoggerFactoryExpression(typeSymbol, fullyQualifiedType))
             .AppendLine(";");
 
